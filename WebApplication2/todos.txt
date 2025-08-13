@@ -1,0 +1,49 @@
+idyi kendisi vericek
+GetById
+UpdateById 
+DeleteById
+AddRange(Topluca veri ekleme.Jsondan mesela)
+Validasyonlar(null check vs.)
+WKT validasyon format için. Regex kullanılabilir. Wikipediadan formata bak
+
+
+
+generic bir response classı üzerinden return işlemleri.
+
+
+
+
+
+
+[
+  {
+    "id": 0,
+    "name": "Ankara",
+    "wkt": "POINT (30 10)"
+  },
+{
+    "id": 0,
+    "name": "Adana",
+    "wkt": "LINESTRING (30 10, 10 30, 40 40)"
+  },
+{
+    "id": 0,
+    "name": "İstanbul",
+    "wkt": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
+  },
+  {
+      "id": 0,
+      "name": "İzmir",
+      "wkt": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
+    }
+]
+
+
+
+exception handling point entity üzerinden yapılacak.
+
+
+
+
+controller üzerinden try catchler eklenecek
+interface ve service katmanları eklenecek.
