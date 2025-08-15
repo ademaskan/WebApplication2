@@ -40,7 +40,7 @@ public class PointController : ControllerBase
         var result = pointService.UpdatePoint(id, newName, newWKT);
         if (!result.Success)
         {
-            if (result.Errors.Any(e => e.Contains("not found")))
+            if (result.Message.Contains("not found"))
                 return NotFound(result);
             return BadRequest(result);
         }
@@ -59,9 +59,9 @@ public class PointController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Add(string name, string WKT)
+    public IActionResult Add([FromBody] AddPointDto pointDto)
     {
-        var result = pointService.AddPoint(name, WKT);
+        var result = pointService.AddPoint(pointDto);
         if (!result.Success)
         {
             return BadRequest(result);
@@ -70,9 +70,9 @@ public class PointController : ControllerBase
     }
     
     [HttpPost]
-    public IActionResult AddRange(List<Point> points)
+    public IActionResult AddRange([FromBody] List<AddPointDto> pointDtos)
     {
-        var result = pointService.AddRangePoints(points);
+        var result = pointService.AddRangePoints(pointDtos);
         if (!result.Success)
         {
             return BadRequest(result);

@@ -5,87 +5,57 @@ public class ApiResponse<T>
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
     public T? Data { get; set; }
-    public List<string> Errors { get; set; } = new List<string>();
     
-    public static ApiResponse<T> SuccessResponse(T data, string message = "Operation completed successfully")
+    public static ApiResponse<T> SuccessResponse(T data, string messageKey = "OperationCompletedSuccessfully")
     {
         return new ApiResponse<T>
         {
             Success = true,
-            Message = message,
-            Data = data,
-            Errors = new List<string>()
+            Message = ApiMessageManager.GetMessage(messageKey),
+            Data = data
         };
     }
     
-    public static ApiResponse<T> SuccessResponse(string message = "Operation completed successfully")
+    public static ApiResponse<T> SuccessResponse(string messageKey = "OperationCompletedSuccessfully")
     {
         return new ApiResponse<T>
         {
             Success = true,
-            Message = message,
-            Data = default(T),
-            Errors = new List<string>()
+            Message = ApiMessageManager.GetMessage(messageKey),
+            Data = default(T)
         };
     }
     
-    public static ApiResponse<T> ErrorResponse(string error, string message = "Operation failed")
+    public static ApiResponse<T> ErrorResponse(string messageKey = "OperationFailed")
     {
         return new ApiResponse<T>
         {
             Success = false,
-            Message = message,
-            Data = default(T),
-            Errors = new List<string> { error }
-        };
-    }
-    
-    public static ApiResponse<T> ErrorResponse(List<string> errors, string message = "Operation failed")
-    {
-        return new ApiResponse<T>
-        {
-            Success = false,
-            Message = message,
-            Data = default(T),
-            Errors = errors
+            Message = ApiMessageManager.GetMessage(messageKey),
+            Data = default(T)
         };
     }
 }
 
-
-//Data olmayanlar için
 public class ApiResponse : ApiResponse<object>
 {
-    public static ApiResponse SuccessResponse(string message = "Operation completed successfully")
+    public static new ApiResponse SuccessResponse(string messageKey = "OperationCompletedSuccessfully")
     {
         return new ApiResponse
         {
             Success = true,
-            Message = message,
-            Data = null,
-            Errors = new List<string>()
+            Message = ApiMessageManager.GetMessage(messageKey),
+            Data = null
         };
     }
 
-    public static ApiResponse ErrorResponse(string error, string message = "Operation failed")
+    public static new ApiResponse ErrorResponse(string messageKey = "OperationFailed")
     {
         return new ApiResponse
         {
             Success = false,
-            Message = message,
-            Data = null,
-            Errors = new List<string> { error }
-        };
-    }
-
-    public static ApiResponse ErrorResponse(List<string> errors, string message = "Operation failed")
-    {
-        return new ApiResponse
-        {
-            Success = false,
-            Message = message,
-            Data = null,
-            Errors = errors
+            Message = ApiMessageManager.GetMessage(messageKey),
+            Data = null
         };
     }
 }

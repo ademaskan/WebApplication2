@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="OperationCompletedSuccessfully" xml:space="preserve">
+    <value>Operation completed successfully</value>
+  </data>
+  <data name="OperationFailed" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+  <data name="DataRetrievedSuccessfully" xml:space="preserve">
+    <value>Data retrieved successfully</value>
+  </data>
+  <data name="DataCreatedSuccessfully" xml:space="preserve">
+    <value>Data created successfully</value>
+  </data>
+  <data name="DataUpdatedSuccessfully" xml:space="preserve">
+    <value>Data updated successfully</value>
+  </data>
+  <data name="DataDeletedSuccessfully" xml:space="preserve">
+    <value>Data deleted successfully</value>
+  </data>
+  <data name="ValidationError" xml:space="preserve">
+    <value>Validation error occurred</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Requested resource not found</value>
+  </data>
+  <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>Unauthorized access</value>
+  </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>An internal server error occurred</value>
+  </data>
+  <data name="PointsRetrievedSuccessfully" xml:space="preserve">
+    <value>Points retrieved successfully</value>
+  </data>
+  <data name="PointRetrievedSuccessfully" xml:space="preserve">
+    <value>Point retrieved successfully</value>
+  </data>
+  <data name="PointNotFound" xml:space="preserve">
+    <value>Point not found</value>
+  </data>
+  <data name="PointAddedSuccessfully" xml:space="preserve">
+    <value>Point added successfully</value>
+  </data>
+  <data name="PointUpdatedSuccessfully" xml:space="preserve">
+    <value>Point updated successfully</value>
+  </data>
+  <data name="PointDeletedSuccessfully" xml:space="preserve">
+    <value>Point deleted successfully</value>
+  </data>
+  <data name="InvalidWktFormat" xml:space="preserve">
+    <value>Invalid WKT format</value>
+  </data>
+  <data name="InvalidInput" xml:space="preserve">
+    <value>Invalid input</value>
+  </data>
+  <data name="PointsAddedSuccessfully" xml:space="preserve">
+    <value>Points added successfully</value>
+  </data>
+</root>
