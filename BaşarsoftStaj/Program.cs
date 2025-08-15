@@ -1,3 +1,6 @@
+using BaşarsoftStaj.Interfaces;
+using BaşarsoftStaj.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(); // This is essential for controllers to work
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); // This will help you visualize your API
+builder.Services.AddSingleton<IPointService, PointService>(); // 
 
 var app = builder.Build();
 

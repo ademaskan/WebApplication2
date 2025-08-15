@@ -1,4 +1,4 @@
-namespace WebApplication2.Entity;
+namespace BaşarsoftStaj.Entity;
 
 public class Point
 {
