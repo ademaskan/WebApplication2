@@ -1,4 +1,3 @@
-using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Models;
 using Microsoft.AspNetCore.Mvc;

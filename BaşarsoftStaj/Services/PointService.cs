@@ -120,8 +120,7 @@ public class PointService : IPointService
     {
         if (string.IsNullOrEmpty(wkt))
             return false;
-
-        // Basic WKT validation patterns
+        
         var patterns = new[]
         {
             @"^POINT\s*\(\s*-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*\)$",

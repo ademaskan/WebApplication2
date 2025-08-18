@@ -1,7 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BaşarsoftStaj.Models;
 
 public class AddPointDto
 {
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public string Name { get; set; } = string.Empty;
+    
+    [Required]
     public string WKT { get; set; } = string.Empty;
 }
