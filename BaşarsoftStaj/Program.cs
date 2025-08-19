@@ -1,18 +1,29 @@
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Services;
+using BaşarsoftStaj.Data;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
 
 // Add services to the container
 builder.Services.AddControllers(); // This is essential for controllers to work
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); // This will help you visualize your API
-builder.Services.AddSingleton<IPointService, PointService>(); // 
+
+// Add Entity Framework with PostgreSQL for EFC classes
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+builder.Services.AddScoped<IPointService, PointServiceADO>();
+builder.Services.AddScoped<IPointService, PointServiceEFC>();
+builder.Services.AddScoped<IPointService, PointServiceStatic>();
+
+// Add these lines after your existing IPointService registrations
+builder.Services.AddScoped<PointServiceADO>();
+builder.Services.AddScoped<PointServiceEFC>();
+builder.Services.AddScoped<PointServiceStatic>();
 
 var app = builder.Build();
 
@@ -25,8 +36,5 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
-
-
-
 
 app.Run();

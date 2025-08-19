@@ -1,17 +1,18 @@
 using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Models;
+using BaşarsoftStaj.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BaşarsoftStaj.Controllers;
 
 [ApiController]
 [Route("api/[controller]/[action]")]
-public class PointControllerDirect : ControllerBase
+public class PointControllerEFC : ControllerBase
 {
-    private readonly IPointService pointService;
+    private readonly PointServiceEFC pointService;
 
-    public PointControllerDirect(IPointService pointService)
+    public PointControllerEFC(PointServiceEFC pointService)
     {
         this.pointService = pointService;
     }

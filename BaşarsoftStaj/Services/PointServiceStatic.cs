@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace BaşarsoftStaj.Services;
 
-public class PointService : IPointService
+public class PointServiceStatic : IPointService
 {
     private static List<Point> _points = new List<Point>();
     private static int _idCounter = 1;

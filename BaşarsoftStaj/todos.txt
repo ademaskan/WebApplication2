@@ -40,6 +40,31 @@ generic bir response classı üzerinden return işlemleri.
 
 
 
+
+[
+  {
+    "name": "Ankara",
+    "wkt": "POINT (30 10)"
+  },
+{
+
+    "name": "Adana",
+    "wkt": "LINESTRING (30 10, 10 30, 40 40)"
+  },
+{
+    
+    "name": "İstanbul",
+    "wkt": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
+  },
+  {
+      
+      "name": "İzmir",
+      "wkt": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
+    }
+]
+
+
+
 exception handling point entity üzerinden yapılacak.
 
 
