@@ -9,7 +9,7 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Point> Points { get; set; }
+    public DbSet<Point> PointsEF { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

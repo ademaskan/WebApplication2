@@ -15,11 +15,9 @@ public class PointServiceADO : IPointService
     public PointServiceADO(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
-        
-        // Create a master connection string to connect to postgres database for creating PointsDb
         var builder = new NpgsqlConnectionStringBuilder(_connectionString);
         var databaseName = builder.Database;
-        builder.Database = "postgres"; // Connect to default postgres database
+        builder.Database = "postgres";
         _masterConnectionString = builder.ConnectionString;
         
         InitializeDatabase(databaseName);
@@ -29,12 +27,12 @@ public class PointServiceADO : IPointService
     {
         try
         {
-            // First, create the database if it doesn't exist
+           
             using (var masterConnection = new NpgsqlConnection(_masterConnectionString))
             {
                 masterConnection.Open();
                 
-                // Check if database exists
+             
                 var checkDbCommand = new NpgsqlCommand(
                     "SELECT 1 FROM pg_database WHERE datname = @dbname", masterConnection);
                 checkDbCommand.Parameters.AddWithValue("@dbname", databaseName);
@@ -43,13 +41,13 @@ public class PointServiceADO : IPointService
                 
                 if (!dbExists)
                 {
-                    // Create the database
+                    
                     var createDbCommand = new NpgsqlCommand($"CREATE DATABASE \"{databaseName}\"", masterConnection);
                     createDbCommand.ExecuteNonQuery();
                 }
             }
             
-            // Now connect to the actual database and create the table
+            
             using (var connection = new NpgsqlConnection(_connectionString))
             {
                 connection.Open();
