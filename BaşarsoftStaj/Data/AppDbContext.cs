@@ -1,5 +1,6 @@
 using BaşarsoftStaj.Entity;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Data;
 
@@ -9,13 +10,13 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Point> PointsEF { get; set; }
+    public DbSet<PointE> PointsEF { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Point>(entity =>
+        modelBuilder.Entity<PointE>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
@@ -23,6 +24,9 @@ public class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.WKT)
+                .IsRequired();
+            entity.Property(e => e.WellKnownText)
+                .HasColumnType("geometry")
                 .IsRequired();
         });
     }

@@ -2,118 +2,141 @@ using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Models;
 using System.Text.RegularExpressions;
+using NetTopologySuite.IO;
 
 namespace BaşarsoftStaj.Services;
 
 public class PointServiceStatic : IPointService
 {
-    private static List<Point> _points = new List<Point>();
+    private static List<PointE> _points = new List<PointE>();
     private static int _idCounter = 1;
+    private static readonly WKTReader _wktReader = new WKTReader();
 
-    public ApiResponse<List<Point>> GetAllPoints()
+    public ApiResponse<List<PointE>> GetAllPoints()
     {
-        return ApiResponse<List<Point>>.SuccessResponse(_points, "PointsRetrievedSuccessfully");
+        return ApiResponse<List<PointE>>.SuccessResponse(_points, "PointsRetrievedSuccessfully");
     }
 
-    public ApiResponse<Point> GetPointById(int id)
+    public ApiResponse<PointE> GetPointById(int id)
     {
         var point = _points.FirstOrDefault(p => p.Id == id);
         if (point == null)
         {
-            return ApiResponse<Point>.ErrorResponse("PointNotFound");
+            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
-        return ApiResponse<Point>.SuccessResponse(point, "PointRetrievedSuccessfully");
+        return ApiResponse<PointE>.SuccessResponse(point, "PointRetrievedSuccessfully");
     }
 
-    public ApiResponse<Point> AddPoint(AddPointDto pointDto)
+    public ApiResponse<PointE> AddPoint(AddPointDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT))
         {
-            return ApiResponse<Point>.ErrorResponse("ValidationError");
+            return ApiResponse<PointE>.ErrorResponse("ValidationError");
         }
 
         if (!IsValidWkt(pointDto.WKT))
         {
-            return ApiResponse<Point>.ErrorResponse("InvalidWktFormat");
+            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
-        var point = new Point
+        try
         {
-            Id = _idCounter++,
-            Name = pointDto.Name,
-            WKT = pointDto.WKT
-        };
+            var point = new PointE
+            {
+                Id = _idCounter++,
+                Name = pointDto.Name,
+                WKT = pointDto.WKT // Geometry conversion happens automatically
+            };
 
-        _points.Add(point);
-        return ApiResponse<Point>.SuccessResponse(point, "PointAddedSuccessfully");
+            _points.Add(point);
+            return ApiResponse<PointE>.SuccessResponse(point, "PointAddedSuccessfully");
+        }
+        catch (Exception)
+        {
+            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
+        }
     }
 
-    public ApiResponse<List<Point>> AddRangePoints(List<AddPointDto> pointDtos)
+    public ApiResponse<List<PointE>> AddRangePoints(List<AddPointDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {
-            return ApiResponse<List<Point>>.ErrorResponse("InvalidInput");
+            return ApiResponse<List<PointE>>.ErrorResponse("InvalidInput");
         }
 
-        var validPoints = new List<Point>();
+        var validPoints = new List<PointE>();
 
         foreach (var pointDto in pointDtos)
         {
             if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT) || !IsValidWkt(pointDto.WKT))
             {
-                return ApiResponse<List<Point>>.ErrorResponse("ValidationError");
+                return ApiResponse<List<PointE>>.ErrorResponse("ValidationError");
             }
 
-            var point = new Point
+            try
             {
-                Id = _idCounter++,
-                Name = pointDto.Name,
-                WKT = pointDto.WKT
-            };
-            validPoints.Add(point);
+                var point = new PointE
+                {
+                    Id = _idCounter++,
+                    Name = pointDto.Name,
+                    WKT = pointDto.WKT // Geometry conversion happens automatically
+                };
+                validPoints.Add(point);
+            }
+            catch (Exception)
+            {
+                return ApiResponse<List<PointE>>.ErrorResponse("InvalidWktFormat");
+            }
         }
 
         _points.AddRange(validPoints);
-        return ApiResponse<List<Point>>.SuccessResponse(validPoints, "PointsAddedSuccessfully");
+        return ApiResponse<List<PointE>>.SuccessResponse(validPoints, "PointsAddedSuccessfully");
     }
 
-    public ApiResponse<Point> UpdatePoint(int id, string newName, string newWkt)
+    public ApiResponse<PointE> UpdatePoint(int id, string newName, string newWkt)
     {
         var point = _points.FirstOrDefault(p => p.Id == id);
         if (point == null)
         {
-            return ApiResponse<Point>.ErrorResponse("PointNotFound");
+            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
 
         if (string.IsNullOrEmpty(newName) && string.IsNullOrEmpty(newWkt))
         {
-            return ApiResponse<Point>.ErrorResponse("ValidationError");
+            return ApiResponse<PointE>.ErrorResponse("ValidationError");
         }
 
         if (!string.IsNullOrEmpty(newWkt) && !IsValidWkt(newWkt))
         {
-            return ApiResponse<Point>.ErrorResponse("InvalidWktFormat");
+            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
-        if (!string.IsNullOrEmpty(newName))
-            point.Name = newName;
+        try
+        {
+            if (!string.IsNullOrEmpty(newName))
+                point.Name = newName;
 
-        if (!string.IsNullOrEmpty(newWkt))
-            point.WKT = newWkt;
+            if (!string.IsNullOrEmpty(newWkt))
+                point.WKT = newWkt; // Geometry conversion happens automatically
 
-        return ApiResponse<Point>.SuccessResponse(point, "PointUpdatedSuccessfully");
+            return ApiResponse<PointE>.SuccessResponse(point, "PointUpdatedSuccessfully");
+        }
+        catch (Exception)
+        {
+            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
+        }
     }
 
-    public ApiResponse<Point> DeletePoint(int id)
+    public ApiResponse<PointE> DeletePoint(int id)
     {
         var point = _points.FirstOrDefault(p => p.Id == id);
         if (point == null)
         {
-            return ApiResponse<Point>.ErrorResponse("PointNotFound");
+            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
+        
         _points.Remove(point);
-
-        return ApiResponse<Point>.SuccessResponse(point, "PointDeletedSuccessfully");
+        return ApiResponse<PointE>.SuccessResponse(point, "PointDeletedSuccessfully");
     }
 
     private bool IsValidWkt(string wkt)

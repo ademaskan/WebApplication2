@@ -4,6 +4,7 @@ using BaşarsoftStaj.Models;
 using Npgsql;
 using System.Data;
 using System.Text.RegularExpressions;
+using NetTopologySuite.IO;
 
 namespace BaşarsoftStaj.Services;
 
@@ -11,6 +12,7 @@ public class PointServiceADO : IPointService
 {
     private readonly string _connectionString;
     private readonly string _masterConnectionString;
+    private readonly WKTReader _wktReader;
     
     public PointServiceADO(IConfiguration configuration)
     {
@@ -19,6 +21,7 @@ public class PointServiceADO : IPointService
         var databaseName = builder.Database;
         builder.Database = "postgres";
         _masterConnectionString = builder.ConnectionString;
+        _wktReader = new WKTReader();
         
         InitializeDatabase(databaseName);
     }
@@ -68,11 +71,11 @@ public class PointServiceADO : IPointService
         }
     }
 
-    public ApiResponse<List<Point>> GetAllPoints()
+    public ApiResponse<List<PointE>> GetAllPoints()
     {
         try
         {
-            var points = new List<Point>();
+            var points = new List<PointE>();
             
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
@@ -82,23 +85,24 @@ public class PointServiceADO : IPointService
             
             while (reader.Read())
             {
-                points.Add(new Point
+                var point = new PointE
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT")
-                });
+                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                };
+                points.Add(point);
             }
             
-            return ApiResponse<List<Point>>.SuccessResponse(points, "PointsRetrievedSuccessfully");
+            return ApiResponse<List<PointE>>.SuccessResponse(points, "PointsRetrievedSuccessfully");
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<Point>>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<List<PointE>>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<Point> GetPointById(int id)
+    public ApiResponse<PointE> GetPointById(int id)
     {
         try
         {
@@ -112,34 +116,34 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new Point
+                var point = new PointE
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT")
+                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
                 };
                 
-                return ApiResponse<Point>.SuccessResponse(point, "PointRetrievedSuccessfully");
+                return ApiResponse<PointE>.SuccessResponse(point, "PointRetrievedSuccessfully");
             }
             
-            return ApiResponse<Point>.ErrorResponse("PointNotFound");
+            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
         catch (Exception ex)
         {
-            return ApiResponse<Point>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<Point> AddPoint(AddPointDto pointDto)
+    public ApiResponse<PointE> AddPoint(AddPointDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT))
         {
-            return ApiResponse<Point>.ErrorResponse("ValidationError");
+            return ApiResponse<PointE>.ErrorResponse("ValidationError");
         }
 
         if (!IsValidWkt(pointDto.WKT))
         {
-            return ApiResponse<Point>.ErrorResponse("InvalidWktFormat");
+            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
         try
@@ -159,29 +163,29 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new Point
+                var point = new PointE
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT")
+                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
                 };
                 
-                return ApiResponse<Point>.SuccessResponse(point, "PointAddedSuccessfully");
+                return ApiResponse<PointE>.SuccessResponse(point, "PointAddedSuccessfully");
             }
             
-            return ApiResponse<Point>.ErrorResponse("FailedToAddPoint");
+            return ApiResponse<PointE>.ErrorResponse("FailedToAddPoint");
         }
         catch (Exception ex)
         {
-            return ApiResponse<Point>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<List<Point>> AddRangePoints(List<AddPointDto> pointDtos)
+    public ApiResponse<List<PointE>> AddRangePoints(List<AddPointDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {
-            return ApiResponse<List<Point>>.ErrorResponse("InvalidInput");
+            return ApiResponse<List<PointE>>.ErrorResponse("InvalidInput");
         }
 
         // Validate all points before processing
@@ -189,13 +193,13 @@ public class PointServiceADO : IPointService
         {
             if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT) || !IsValidWkt(pointDto.WKT))
             {
-                return ApiResponse<List<Point>>.ErrorResponse("ValidationError");
+                return ApiResponse<List<PointE>>.ErrorResponse("ValidationError");
             }
         }
 
         try
         {
-            var addedPoints = new List<Point>();
+            var addedPoints = new List<PointE>();
             
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
@@ -218,19 +222,20 @@ public class PointServiceADO : IPointService
                     
                     if (reader.Read())
                     {
-                        addedPoints.Add(new Point
+                        var point = new PointE
                         {
                             Id = reader.GetInt32("Id"),
                             Name = reader.GetString("Name"),
-                            WKT = reader.GetString("WKT")
-                        });
+                            WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                        };
+                        addedPoints.Add(point);
                     }
                     
                     reader.Close();
                 }
                 
                 transaction.Commit();
-                return ApiResponse<List<Point>>.SuccessResponse(addedPoints, "PointsAddedSuccessfully");
+                return ApiResponse<List<PointE>>.SuccessResponse(addedPoints, "PointsAddedSuccessfully");
             }
             catch
             {
@@ -240,20 +245,20 @@ public class PointServiceADO : IPointService
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<Point>>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<List<PointE>>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<Point> UpdatePoint(int id, string newName, string newWkt)
+    public ApiResponse<PointE> UpdatePoint(int id, string newName, string newWkt)
     {
         if (string.IsNullOrEmpty(newName) && string.IsNullOrEmpty(newWkt))
         {
-            return ApiResponse<Point>.ErrorResponse("ValidationError");
+            return ApiResponse<PointE>.ErrorResponse("ValidationError");
         }
 
         if (!string.IsNullOrEmpty(newWkt) && !IsValidWkt(newWkt))
         {
-            return ApiResponse<Point>.ErrorResponse("InvalidWktFormat");
+            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
         try
@@ -268,7 +273,7 @@ public class PointServiceADO : IPointService
             
             if (!exists)
             {
-                return ApiResponse<Point>.ErrorResponse("PointNotFound");
+                return ApiResponse<PointE>.ErrorResponse("PointNotFound");
             }
 
             // Build dynamic update query
@@ -299,25 +304,25 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new Point
+                var point = new PointE
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT")
+                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
                 };
                 
-                return ApiResponse<Point>.SuccessResponse(point, "PointUpdatedSuccessfully");
+                return ApiResponse<PointE>.SuccessResponse(point, "PointUpdatedSuccessfully");
             }
             
-            return ApiResponse<Point>.ErrorResponse("PointNotFound");
+            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
         catch (Exception ex)
         {
-            return ApiResponse<Point>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<Point> DeletePoint(int id)
+    public ApiResponse<PointE> DeletePoint(int id)
     {
         try
         {
@@ -335,21 +340,21 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new Point
+                var point = new PointE
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT")
+                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
                 };
                 
-                return ApiResponse<Point>.SuccessResponse(point, "PointDeletedSuccessfully");
+                return ApiResponse<PointE>.SuccessResponse(point, "PointDeletedSuccessfully");
             }
             
-            return ApiResponse<Point>.ErrorResponse("PointNotFound");
+            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
         catch (Exception ex)
         {
-            return ApiResponse<Point>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 

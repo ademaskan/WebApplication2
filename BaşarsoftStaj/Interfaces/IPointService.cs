@@ -5,10 +5,10 @@ namespace BaşarsoftStaj.Interfaces;
 
 public interface IPointService
 {
-    ApiResponse<List<Point>> GetAllPoints();
-    ApiResponse<Point> GetPointById(int id);
-    ApiResponse<Point> AddPoint(AddPointDto pointDto);
-    ApiResponse<List<Point>> AddRangePoints(List<AddPointDto> pointDtos);
-    ApiResponse<Point> UpdatePoint(int id, string newName, string newWkt);
-    ApiResponse<Point> DeletePoint(int id);
+    ApiResponse<List<PointE>> GetAllPoints();
+    ApiResponse<PointE> GetPointById(int id);
+    ApiResponse<PointE> AddPoint(AddPointDto pointDto);
+    ApiResponse<List<PointE>> AddRangePoints(List<AddPointDto> pointDtos);
+    ApiResponse<PointE> UpdatePoint(int id, string newName, string newWkt);
+    ApiResponse<PointE> DeletePoint(int id);
 }

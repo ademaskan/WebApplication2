@@ -18,37 +18,37 @@ public class PointControllerEFC : ControllerBase
     }
 
     [HttpGet]
-    public ApiResponse<List<Point>> GetAll()
+    public ApiResponse<List<PointE>> GetAll()
     {
         return pointService.GetAllPoints();
     }
     
     [HttpGet]
-    public ApiResponse<Point> GetById(int id)
+    public ApiResponse<PointE> GetById(int id)
     {
         return pointService.GetPointById(id);
     }
     
     [HttpPost]
-    public ApiResponse<Point> UpdateById(int id, string newName, string newWKT)
+    public ApiResponse<PointE> UpdateById(int id, string newName, string newWKT)
     {
         return pointService.UpdatePoint(id, newName, newWKT);
     }
 
     [HttpPost]
-    public ApiResponse<Point> DeleteById(int id)
+    public ApiResponse<PointE> DeleteById(int id)
     {
         return pointService.DeletePoint(id);
     }
 
     [HttpPost]
-    public ApiResponse<Point> Add([FromBody] AddPointDto pointDto)
+    public ApiResponse<PointE> Add([FromBody] AddPointDto pointDto)
     {
         return pointService.AddPoint(pointDto);
     }
     
     [HttpPost]
-    public ApiResponse<List<Point>> AddRange([FromBody] List<AddPointDto> pointDtos)
+    public ApiResponse<List<PointE>> AddRange([FromBody] List<AddPointDto> pointDtos)
     {
         return pointService.AddRangePoints(pointDtos);
     }
