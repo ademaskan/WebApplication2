@@ -24,14 +24,20 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, o => o.UseNetTopologySuite()));
 
-builder.Services.AddScoped<IPointService, PointServiceADO>();
-builder.Services.AddScoped<IPointService, PointServiceEFC>();
-builder.Services.AddScoped<IPointService, PointServiceStatic>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IPointRepository, PointRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Add these lines after your existing IPointService registrations
+
+
+// Register all service implementations
 builder.Services.AddScoped<PointServiceADO>();
 builder.Services.AddScoped<PointServiceEFC>();
 builder.Services.AddScoped<PointServiceStatic>();
+
+// Choose which service implementation to use for IPointService
+// Simply change this line to switch between implementations:
+builder.Services.AddScoped<IPointService, PointServiceEFC>();
 
 var app = builder.Build();
 
