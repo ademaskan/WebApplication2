@@ -16,4 +16,5 @@ public class PointE
     
     [Required]
     public Geometry Geometry { get; set; }
+    
 }

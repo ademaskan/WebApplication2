@@ -4,6 +4,9 @@ using BaşarsoftStaj.Services;
 using BaşarsoftStaj.Data;
 using Microsoft.EntityFrameworkCore;
 using BaşarsoftStaj.Utils;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
+using Spatial4n.Shapes.Nts;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +19,11 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
     });
-    
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); 
+
+
 
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
