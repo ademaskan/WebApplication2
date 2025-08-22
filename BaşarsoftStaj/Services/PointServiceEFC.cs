@@ -4,18 +4,17 @@ using BaşarsoftStaj.Models;
 using BaşarsoftStaj.Data;
 using System.Text.RegularExpressions;
 using NetTopologySuite.IO;
+using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Services;
 
 public class PointServiceEFC : IPointService
 {
     private readonly AppDbContext _context;
-    private readonly WKTReader _wktReader;
 
     public PointServiceEFC(AppDbContext context)
     {
         _context = context;
-        _wktReader = new WKTReader();
     }
 
     public ApiResponse<List<PointE>> GetAllPoints()
@@ -36,14 +35,9 @@ public class PointServiceEFC : IPointService
 
     public ApiResponse<PointE> AddPoint(AddPointDto pointDto)
     {
-        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT))
+        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
             return ApiResponse<PointE>.ErrorResponse("ValidationError");
-        }
-
-        if (!IsValidWkt(pointDto.WKT))
-        {
-            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
         try
@@ -51,7 +45,7 @@ public class PointServiceEFC : IPointService
             var point = new PointE
             {
                 Name = pointDto.Name,
-                WKT = pointDto.WKT // Geometry conversion happens automatically
+                Geometry = pointDto.Geometry
             };
 
             _context.PointsEF.Add(point);
@@ -76,7 +70,7 @@ public class PointServiceEFC : IPointService
 
         foreach (var pointDto in pointDtos)
         {
-            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT) || !IsValidWkt(pointDto.WKT))
+            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
             {
                 return ApiResponse<List<PointE>>.ErrorResponse("ValidationError");
             }
@@ -86,7 +80,7 @@ public class PointServiceEFC : IPointService
                 var point = new PointE
                 {
                     Name = pointDto.Name,
-                    WKT = pointDto.WKT // Geometry conversion happens automatically
+                    Geometry = pointDto.Geometry
                 };
                 validPoints.Add(point);
             }
@@ -102,7 +96,7 @@ public class PointServiceEFC : IPointService
         return ApiResponse<List<PointE>>.SuccessResponse(validPoints, "PointsAddedSuccessfully");
     }
 
-    public ApiResponse<PointE> UpdatePoint(int id, string newName, string newWkt)
+    public ApiResponse<PointE> UpdatePoint(int id, string newName, Geometry newGeometry)
     {
         var point = _context.PointsEF.FirstOrDefault(p => p.Id == id);
         if (point == null)
@@ -110,14 +104,9 @@ public class PointServiceEFC : IPointService
             return ApiResponse<PointE>.ErrorResponse("PointNotFound");
         }
 
-        if (string.IsNullOrEmpty(newName) && string.IsNullOrEmpty(newWkt))
+        if (string.IsNullOrEmpty(newName) && newGeometry == null)
         {
             return ApiResponse<PointE>.ErrorResponse("ValidationError");
-        }
-
-        if (!string.IsNullOrEmpty(newWkt) && !IsValidWkt(newWkt))
-        {
-            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
         try
@@ -125,8 +114,8 @@ public class PointServiceEFC : IPointService
             if (!string.IsNullOrEmpty(newName))
                 point.Name = newName;
 
-            if (!string.IsNullOrEmpty(newWkt))
-                point.WKT = newWkt; // Geometry conversion happens automatically
+            if (newGeometry != null)
+                point.Geometry = newGeometry;
 
             _context.SaveChanges();
 
@@ -150,20 +139,5 @@ public class PointServiceEFC : IPointService
         _context.SaveChanges();
 
         return ApiResponse<PointE>.SuccessResponse(point, "PointDeletedSuccessfully");
-    }
-
-    private bool IsValidWkt(string wkt)
-    {
-        if (string.IsNullOrEmpty(wkt))
-            return false;
-        
-        var patterns = new[]
-        {
-            @"^POINT\s*\(\s*-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*\)$",
-            @"^LINESTRING\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\)$",
-            @"^POLYGON\s*\(\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\)\s*\)$"
-        };
-
-        return patterns.Any(pattern => Regex.IsMatch(wkt.Trim(), pattern, RegexOptions.IgnoreCase));
     }
 }

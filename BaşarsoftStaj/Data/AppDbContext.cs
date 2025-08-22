@@ -23,9 +23,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(e => e.WKT)
-                .IsRequired();
-            entity.Property(e => e.WellKnownText)
+            entity.Property(e => e.Geometry)
                 .HasColumnType("geometry")
                 .IsRequired();
         });

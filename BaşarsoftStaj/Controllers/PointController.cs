@@ -2,6 +2,7 @@ using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Models;
 using Microsoft.AspNetCore.Mvc;
+using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Controllers
 {
@@ -85,8 +86,7 @@ namespace BaşarsoftStaj.Controllers
                 }
 
                 existingPoint.Name = request.NewName;
-                // Parse WKT and update geometry if needed
-                // existingPoint.Geometry = ParseWkt(request.NewWkt);
+                existingPoint.Geometry = request.NewGeometry;
 
                 await _unitOfWork.Points.UpdateAsync(existingPoint);
                 await _unitOfWork.SaveAsync();
@@ -149,8 +149,7 @@ namespace BaşarsoftStaj.Controllers
                 var point = new PointE
                 {
                     Name = pointDto.Name,
-                    WKT = pointDto.WKT,
-                    // Map other properties from pointDto as needed
+                    Geometry = pointDto.Geometry
                 };
 
                 await _unitOfWork.Points.AddAsync(point);
@@ -184,8 +183,7 @@ namespace BaşarsoftStaj.Controllers
                     var point = new PointE
                     {
                         Name = dto.Name,
-                        WKT = dto.WKT,
-                        // Map other properties from dto as needed
+                        Geometry = dto.Geometry
                     };
 
                     await _unitOfWork.Points.AddAsync(point);
@@ -214,6 +212,6 @@ namespace BaşarsoftStaj.Controllers
     public class UpdatePointRequest
     {
         public string NewName { get; set; } = string.Empty;
-        public string NewWkt { get; set; } = string.Empty;
+        public Geometry NewGeometry { get; set; }
     }
 }

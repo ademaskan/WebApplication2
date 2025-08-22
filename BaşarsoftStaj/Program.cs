@@ -1,8 +1,9 @@
+using System.Text.Json;
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Services;
 using BaşarsoftStaj.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
+using BaşarsoftStaj.Utils;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,15 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Configure JSON serialization to handle NetTopologySuite objects
-        options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.Converters.Add(new GeometryConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
     });
     
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // This will help you visualize your API
+builder.Services.AddSwaggerGen(); 
 
-// Add Entity Framework with PostgreSQL for EFC classes
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, o => o.UseNetTopologySuite()));
@@ -30,7 +31,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 
-// Register all service implementations
+
 builder.Services.AddScoped<PointServiceADO>();
 builder.Services.AddScoped<PointServiceEFC>();
 builder.Services.AddScoped<PointServiceStatic>();

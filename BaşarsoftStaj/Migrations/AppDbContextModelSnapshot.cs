@@ -23,7 +23,7 @@ namespace BaşarsoftStaj.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BaşarsoftStaj.Entity.Point", b =>
+            modelBuilder.Entity("BaşarsoftStaj.Entity.PointE", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -31,19 +31,14 @@ namespace BaşarsoftStaj.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<Geometry>("Geometry")
+                        .IsRequired()
+                        .HasColumnType("geometry");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<string>("WKT")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<Geometry>("WellKnownText")
-                        .IsRequired()
-                        .HasColumnType("geometry");
 
                     b.HasKey("Id");
 

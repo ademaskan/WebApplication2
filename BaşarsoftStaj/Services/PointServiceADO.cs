@@ -5,6 +5,7 @@ using Npgsql;
 using System.Data;
 using System.Text.RegularExpressions;
 using NetTopologySuite.IO;
+using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Services;
 
@@ -12,7 +13,6 @@ public class PointServiceADO : IPointService
 {
     private readonly string _connectionString;
     private readonly string _masterConnectionString;
-    private readonly WKTReader _wktReader;
     
     public PointServiceADO(IConfiguration configuration)
     {
@@ -21,7 +21,6 @@ public class PointServiceADO : IPointService
         var databaseName = builder.Database;
         builder.Database = "postgres";
         _masterConnectionString = builder.ConnectionString;
-        _wktReader = new WKTReader();
         
         InitializeDatabase(databaseName);
     }
@@ -59,7 +58,7 @@ public class PointServiceADO : IPointService
                     CREATE TABLE IF NOT EXISTS Points (
                         Id SERIAL PRIMARY KEY,
                         Name VARCHAR(100) NOT NULL,
-                        WKT TEXT NOT NULL
+                        Geometry GEOMETRY NOT NULL
                     )", connection);
                 
                 createTableCommand.ExecuteNonQuery();
@@ -80,7 +79,7 @@ public class PointServiceADO : IPointService
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
             
-            var command = new NpgsqlCommand("SELECT Id, Name, WKT FROM Points ORDER BY Id", connection);
+            var command = new NpgsqlCommand("SELECT Id, Name, ST_AsText(Geometry) as WKT FROM Points ORDER BY Id", connection);
             using var reader = command.ExecuteReader();
             
             while (reader.Read())
@@ -89,7 +88,7 @@ public class PointServiceADO : IPointService
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                    Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 points.Add(point);
             }
@@ -109,7 +108,7 @@ public class PointServiceADO : IPointService
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
             
-            var command = new NpgsqlCommand("SELECT Id, Name, WKT FROM Points WHERE Id = @Id", connection);
+            var command = new NpgsqlCommand("SELECT Id, Name, ST_AsText(Geometry) as WKT FROM Points WHERE Id = @Id", connection);
             command.Parameters.AddWithValue("@Id", id);
             
             using var reader = command.ExecuteReader();
@@ -120,7 +119,7 @@ public class PointServiceADO : IPointService
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                    Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
                 return ApiResponse<PointE>.SuccessResponse(point, "PointRetrievedSuccessfully");
@@ -136,14 +135,9 @@ public class PointServiceADO : IPointService
 
     public ApiResponse<PointE> AddPoint(AddPointDto pointDto)
     {
-        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT))
+        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
             return ApiResponse<PointE>.ErrorResponse("ValidationError");
-        }
-
-        if (!IsValidWkt(pointDto.WKT))
-        {
-            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
         try
@@ -152,12 +146,12 @@ public class PointServiceADO : IPointService
             connection.Open();
             
             var command = new NpgsqlCommand(@"
-                INSERT INTO Points (Name, WKT) 
-                VALUES (@Name, @WKT) 
-                RETURNING Id, Name, WKT", connection);
+                INSERT INTO Points (Name, Geometry) 
+                VALUES (@Name, ST_GeomFromText(@WKT, 4326)) 
+                RETURNING Id, Name, ST_AsText(Geometry) as WKT", connection);
             
             command.Parameters.AddWithValue("@Name", pointDto.Name);
-            command.Parameters.AddWithValue("@WKT", pointDto.WKT);
+            command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(pointDto.Geometry));
             
             using var reader = command.ExecuteReader();
             
@@ -167,7 +161,7 @@ public class PointServiceADO : IPointService
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                    Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
                 return ApiResponse<PointE>.SuccessResponse(point, "PointAddedSuccessfully");
@@ -191,7 +185,7 @@ public class PointServiceADO : IPointService
         // Validate all points before processing
         foreach (var pointDto in pointDtos)
         {
-            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.WKT) || !IsValidWkt(pointDto.WKT))
+            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
             {
                 return ApiResponse<List<PointE>>.ErrorResponse("ValidationError");
             }
@@ -211,12 +205,12 @@ public class PointServiceADO : IPointService
                 foreach (var pointDto in pointDtos)
                 {
                     var command = new NpgsqlCommand(@"
-                        INSERT INTO Points (Name, WKT) 
-                        VALUES (@Name, @WKT) 
-                        RETURNING Id, Name, WKT", connection, transaction);
+                        INSERT INTO Points (Name, Geometry) 
+                        VALUES (@Name, ST_GeomFromText(@WKT, 4326)) 
+                        RETURNING Id, Name, ST_AsText(Geometry) as WKT", connection, transaction);
                     
                     command.Parameters.AddWithValue("@Name", pointDto.Name);
-                    command.Parameters.AddWithValue("@WKT", pointDto.WKT);
+                    command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(pointDto.Geometry));
                     
                     using var reader = command.ExecuteReader();
                     
@@ -226,7 +220,7 @@ public class PointServiceADO : IPointService
                         {
                             Id = reader.GetInt32("Id"),
                             Name = reader.GetString("Name"),
-                            WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                            Geometry = new WKTReader().Read(reader.GetString("WKT"))
                         };
                         addedPoints.Add(point);
                     }
@@ -249,16 +243,11 @@ public class PointServiceADO : IPointService
         }
     }
 
-    public ApiResponse<PointE> UpdatePoint(int id, string newName, string newWkt)
+    public ApiResponse<PointE> UpdatePoint(int id, string newName, Geometry newGeometry)
     {
-        if (string.IsNullOrEmpty(newName) && string.IsNullOrEmpty(newWkt))
+        if (string.IsNullOrEmpty(newName) && newGeometry == null)
         {
             return ApiResponse<PointE>.ErrorResponse("ValidationError");
-        }
-
-        if (!string.IsNullOrEmpty(newWkt) && !IsValidWkt(newWkt))
-        {
-            return ApiResponse<PointE>.ErrorResponse("InvalidWktFormat");
         }
 
         try
@@ -288,17 +277,17 @@ public class PointServiceADO : IPointService
                 command.Parameters.AddWithValue("@Name", newName);
             }
 
-            if (!string.IsNullOrEmpty(newWkt))
+            if (newGeometry != null)
             {
-                setParts.Add("WKT = @WKT");
-                command.Parameters.AddWithValue("@WKT", newWkt);
+                setParts.Add("Geometry = ST_GeomFromText(@WKT, 4326)");
+                command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(newGeometry));
             }
 
             command.CommandText = $@"
                 UPDATE Points 
                 SET {string.Join(", ", setParts)}
                 WHERE Id = @Id 
-                RETURNING Id, Name, WKT";
+                RETURNING Id, Name, ST_AsText(Geometry) as WKT";
             
             using var reader = command.ExecuteReader();
             
@@ -308,7 +297,7 @@ public class PointServiceADO : IPointService
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                    Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
                 return ApiResponse<PointE>.SuccessResponse(point, "PointUpdatedSuccessfully");
@@ -332,7 +321,7 @@ public class PointServiceADO : IPointService
             var command = new NpgsqlCommand(@"
                 DELETE FROM Points 
                 WHERE Id = @Id 
-                RETURNING Id, Name, WKT", connection);
+                RETURNING Id, Name, ST_AsText(Geometry) as WKT", connection);
             
             command.Parameters.AddWithValue("@Id", id);
             
@@ -344,7 +333,7 @@ public class PointServiceADO : IPointService
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
-                    WKT = reader.GetString("WKT") // Geometry conversion happens automatically
+                    Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
                 return ApiResponse<PointE>.SuccessResponse(point, "PointDeletedSuccessfully");
@@ -356,20 +345,5 @@ public class PointServiceADO : IPointService
         {
             return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
-    }
-
-    private bool IsValidWkt(string wkt)
-    {
-        if (string.IsNullOrEmpty(wkt))
-            return false;
-        
-        var patterns = new[]
-        {
-            @"^POINT\s*\(\s*-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*\)$",
-            @"^LINESTRING\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\)$",
-            @"^POLYGON\s*\(\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\)\s*\)$"
-        };
-
-        return patterns.Any(pattern => Regex.IsMatch(wkt.Trim(), pattern, RegexOptions.IgnoreCase));
     }
 }

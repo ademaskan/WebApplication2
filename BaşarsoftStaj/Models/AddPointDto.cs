@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Models;
 
@@ -9,5 +10,5 @@ public class AddPointDto
     public string Name { get; set; } = string.Empty;
     
     [Required]
-    public string WKT { get; set; } = string.Empty;
+    public Geometry Geometry { get; set; }
 }
