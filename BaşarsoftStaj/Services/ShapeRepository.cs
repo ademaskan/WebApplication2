@@ -17,5 +17,11 @@ namespace BaşarsoftStaj.Services
                 .Where(p => p.Name.Contains(name))
                 .ToListAsync();
         }
+
+        public async Task DeleteAllAsync()
+        {
+            var allShapes = await _dbSet.ToListAsync();
+            _dbSet.RemoveRange(allShapes);
+        }
     }
 }

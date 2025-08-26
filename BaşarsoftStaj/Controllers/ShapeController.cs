@@ -141,6 +141,30 @@ namespace BaşarsoftStaj.Controllers
             }
         }
 
+        [HttpPost("DeleteAll")]
+        public async Task<ApiResponse<object>> DeleteAll()
+        {
+            try
+            {
+                await _unitOfWork.Points.DeleteAllAsync();
+                await _unitOfWork.SaveAsync();
+
+                return new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "All shapes deleted successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
         [HttpPost("Add")]
         public async Task<ApiResponse<Shape>> Add([FromBody] AddShapeDto pointDto)
         {

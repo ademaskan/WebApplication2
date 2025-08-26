@@ -12,6 +12,11 @@
         geometry: Geometry;
     }
     
+    export interface AddShape {
+        name: string;
+        geometry: Geometry;
+    }
+    
     // This is based on the ApiResponse<T> from your backend
     export interface ApiResponse<T> {
         success: boolean;
@@ -35,6 +40,54 @@
             }
         } catch (error) {
             console.error('Error fetching shapes:', error);
+            throw error;
+        }
+    };
+    
+    export const addShape = async (shape: AddShape): Promise<Shape> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/Add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(shape),
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const apiResponse: ApiResponse<Shape> = await response.json();
+    
+            if (apiResponse.success && apiResponse.data) {
+                return apiResponse.data;
+            } else {
+                throw new Error(apiResponse.message || 'Failed to add shape');
+            }
+        } catch (error) {
+            console.error('Error adding shape:', error);
+            throw error;
+        }
+    };
+    
+    export const deleteAllShapes = async (): Promise<void> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/DeleteAll`, {
+                method: 'POST',
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const apiResponse: ApiResponse<object> = await response.json();
+    
+            if (!apiResponse.success) {
+                throw new Error(apiResponse.message || 'Failed to delete all shapes');
+            }
+        } catch (error) {
+            console.error('Error deleting all shapes:', error);
             throw error;
         }
     };
