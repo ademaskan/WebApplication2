@@ -18,12 +18,12 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<ApiResponse<List<PointE>>> GetAll()
+        public async Task<ApiResponse<List<Shape>>> GetAll()
         {
             try
             {
                 var points = await _unitOfWork.Points.GetAllAsync();
-                return new ApiResponse<List<PointE>>
+                return new ApiResponse<List<Shape>>
                 {
                     Success = true,
                     Data = points.ToList()
@@ -31,7 +31,7 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<PointE>>
+                return new ApiResponse<List<Shape>>
                 {
                     Success = false,
                     Message = ex.Message
@@ -40,21 +40,21 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpGet("GetById/{id}")]
-        public async Task<ApiResponse<PointE>> GetById(int id)
+        public async Task<ApiResponse<Shape>> GetById(int id)
         {
             try
             {
                 var point = await _unitOfWork.Points.GetByIdAsync(id);
                 if (point == null)
                 {
-                    return new ApiResponse<PointE>
+                    return new ApiResponse<Shape>
                     {
                         Success = false,
                         Message = "Point not found"
                     };
                 }
 
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = true,
                     Data = point
@@ -62,7 +62,7 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = false,
                     Message = ex.Message
@@ -71,14 +71,14 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("UpdateById/{id}")]
-        public async Task<ApiResponse<PointE>> UpdateById(int id, [FromBody] UpdatePointRequest request)
+        public async Task<ApiResponse<Shape>> UpdateById(int id, [FromBody] UpdatePointRequest request)
         {
             try
             {
                 var existingPoint = await _unitOfWork.Points.GetByIdAsync(id);
                 if (existingPoint == null)
                 {
-                    return new ApiResponse<PointE>
+                    return new ApiResponse<Shape>
                     {
                         Success = false,
                         Message = "Point not found"
@@ -91,7 +91,7 @@ namespace BaşarsoftStaj.Controllers
                 await _unitOfWork.Points.UpdateAsync(existingPoint);
                 await _unitOfWork.SaveAsync();
 
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = true,
                     Data = existingPoint
@@ -99,7 +99,7 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = false,
                     Message = ex.Message
@@ -108,14 +108,14 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("DeleteById/{id}")]
-        public async Task<ApiResponse<PointE>> DeleteById(int id)
+        public async Task<ApiResponse<Shape>> DeleteById(int id)
         {
             try
             {
                 var point = await _unitOfWork.Points.GetByIdAsync(id);
                 if (point == null)
                 {
-                    return new ApiResponse<PointE>
+                    return new ApiResponse<Shape>
                     {
                         Success = false,
                         Message = "Point not found"
@@ -125,7 +125,7 @@ namespace BaşarsoftStaj.Controllers
                 await _unitOfWork.Points.DeleteAsync(id);
                 await _unitOfWork.SaveAsync();
 
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = true,
                     Data = point
@@ -133,7 +133,7 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = false,
                     Message = ex.Message
@@ -142,11 +142,11 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<ApiResponse<PointE>> Add([FromBody] AddPointDto pointDto)
+        public async Task<ApiResponse<Shape>> Add([FromBody] AddShapeDto pointDto)
         {
             try
             {
-                var point = new PointE
+                var point = new Shape
                 {
                     Name = pointDto.Name,
                     Geometry = pointDto.Geometry
@@ -155,7 +155,7 @@ namespace BaşarsoftStaj.Controllers
                 await _unitOfWork.Points.AddAsync(point);
                 await _unitOfWork.SaveAsync();
 
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = true,
                     Data = point
@@ -163,7 +163,7 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResponse<PointE>
+                return new ApiResponse<Shape>
                 {
                     Success = false,
                     Message = ex.Message
@@ -172,15 +172,15 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("AddRange")]
-        public async Task<ApiResponse<List<PointE>>> AddRange([FromBody] List<AddPointDto> pointDtos)
+        public async Task<ApiResponse<List<Shape>>> AddRange([FromBody] List<AddShapeDto> pointDtos)
         {
             try
             {
-                var points = new List<PointE>();
+                var points = new List<Shape>();
 
                 foreach (var dto in pointDtos)
                 {
-                    var point = new PointE
+                    var point = new Shape
                     {
                         Name = dto.Name,
                         Geometry = dto.Geometry
@@ -192,7 +192,7 @@ namespace BaşarsoftStaj.Controllers
 
                 await _unitOfWork.SaveAsync();
 
-                return new ApiResponse<List<PointE>>
+                return new ApiResponse<List<Shape>>
                 {
                     Success = true,
                     Data = points
@@ -200,7 +200,7 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<PointE>>
+                return new ApiResponse<List<Shape>>
                 {
                     Success = false,
                     Message = ex.Message

@@ -70,11 +70,11 @@ public class PointServiceADO : IPointService
         }
     }
 
-    public ApiResponse<List<PointE>> GetAllPoints()
+    public ApiResponse<List<Shape>> GetAllPoints()
     {
         try
         {
-            var points = new List<PointE>();
+            var points = new List<Shape>();
             
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
@@ -84,7 +84,7 @@ public class PointServiceADO : IPointService
             
             while (reader.Read())
             {
-                var point = new PointE
+                var point = new Shape
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
@@ -93,15 +93,15 @@ public class PointServiceADO : IPointService
                 points.Add(point);
             }
             
-            return ApiResponse<List<PointE>>.SuccessResponse(points, "PointsRetrievedSuccessfully");
+            return ApiResponse<List<Shape>>.SuccessResponse(points, "PointsRetrievedSuccessfully");
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<PointE>>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<List<Shape>>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<PointE> GetPointById(int id)
+    public ApiResponse<Shape> GetPointById(int id)
     {
         try
         {
@@ -115,29 +115,29 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new PointE
+                var point = new Shape
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
                     Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
-                return ApiResponse<PointE>.SuccessResponse(point, "PointRetrievedSuccessfully");
+                return ApiResponse<Shape>.SuccessResponse(point, "PointRetrievedSuccessfully");
             }
             
-            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
+            return ApiResponse<Shape>.ErrorResponse("PointNotFound");
         }
         catch (Exception ex)
         {
-            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<Shape>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<PointE> AddPoint(AddPointDto pointDto)
+    public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
-            return ApiResponse<PointE>.ErrorResponse("ValidationError");
+            return ApiResponse<Shape>.ErrorResponse("ValidationError");
         }
 
         try
@@ -157,29 +157,29 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new PointE
+                var point = new Shape
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
                     Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
-                return ApiResponse<PointE>.SuccessResponse(point, "PointAddedSuccessfully");
+                return ApiResponse<Shape>.SuccessResponse(point, "PointAddedSuccessfully");
             }
             
-            return ApiResponse<PointE>.ErrorResponse("FailedToAddPoint");
+            return ApiResponse<Shape>.ErrorResponse("FailedToAddPoint");
         }
         catch (Exception ex)
         {
-            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<Shape>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<List<PointE>> AddRangePoints(List<AddPointDto> pointDtos)
+    public ApiResponse<List<Shape>> AddRangePoints(List<AddPointDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {
-            return ApiResponse<List<PointE>>.ErrorResponse("InvalidInput");
+            return ApiResponse<List<Shape>>.ErrorResponse("InvalidInput");
         }
 
         // Validate all points before processing
@@ -187,13 +187,13 @@ public class PointServiceADO : IPointService
         {
             if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
             {
-                return ApiResponse<List<PointE>>.ErrorResponse("ValidationError");
+                return ApiResponse<List<Shape>>.ErrorResponse("ValidationError");
             }
         }
 
         try
         {
-            var addedPoints = new List<PointE>();
+            var addedPoints = new List<Shape>();
             
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
@@ -216,7 +216,7 @@ public class PointServiceADO : IPointService
                     
                     if (reader.Read())
                     {
-                        var point = new PointE
+                        var point = new Shape
                         {
                             Id = reader.GetInt32("Id"),
                             Name = reader.GetString("Name"),
@@ -229,7 +229,7 @@ public class PointServiceADO : IPointService
                 }
                 
                 transaction.Commit();
-                return ApiResponse<List<PointE>>.SuccessResponse(addedPoints, "PointsAddedSuccessfully");
+                return ApiResponse<List<Shape>>.SuccessResponse(addedPoints, "PointsAddedSuccessfully");
             }
             catch
             {
@@ -239,15 +239,15 @@ public class PointServiceADO : IPointService
         }
         catch (Exception ex)
         {
-            return ApiResponse<List<PointE>>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<List<Shape>>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<PointE> UpdatePoint(int id, string newName, Geometry newGeometry)
+    public ApiResponse<Shape> UpdatePoint(int id, string newName, Geometry newGeometry)
     {
         if (string.IsNullOrEmpty(newName) && newGeometry == null)
         {
-            return ApiResponse<PointE>.ErrorResponse("ValidationError");
+            return ApiResponse<Shape>.ErrorResponse("ValidationError");
         }
 
         try
@@ -262,7 +262,7 @@ public class PointServiceADO : IPointService
             
             if (!exists)
             {
-                return ApiResponse<PointE>.ErrorResponse("PointNotFound");
+                return ApiResponse<Shape>.ErrorResponse("PointNotFound");
             }
 
             // Build dynamic update query
@@ -293,25 +293,25 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new PointE
+                var point = new Shape
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
                     Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
-                return ApiResponse<PointE>.SuccessResponse(point, "PointUpdatedSuccessfully");
+                return ApiResponse<Shape>.SuccessResponse(point, "PointUpdatedSuccessfully");
             }
             
-            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
+            return ApiResponse<Shape>.ErrorResponse("PointNotFound");
         }
         catch (Exception ex)
         {
-            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<Shape>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 
-    public ApiResponse<PointE> DeletePoint(int id)
+    public ApiResponse<Shape> DeletePoint(int id)
     {
         try
         {
@@ -329,21 +329,21 @@ public class PointServiceADO : IPointService
             
             if (reader.Read())
             {
-                var point = new PointE
+                var point = new Shape
                 {
                     Id = reader.GetInt32("Id"),
                     Name = reader.GetString("Name"),
                     Geometry = new WKTReader().Read(reader.GetString("WKT"))
                 };
                 
-                return ApiResponse<PointE>.SuccessResponse(point, "PointDeletedSuccessfully");
+                return ApiResponse<Shape>.SuccessResponse(point, "PointDeletedSuccessfully");
             }
             
-            return ApiResponse<PointE>.ErrorResponse("PointNotFound");
+            return ApiResponse<Shape>.ErrorResponse("PointNotFound");
         }
         catch (Exception ex)
         {
-            return ApiResponse<PointE>.ErrorResponse($"DatabaseError: {ex.Message}");
+            return ApiResponse<Shape>.ErrorResponse($"DatabaseError: {ex.Message}");
         }
     }
 }
