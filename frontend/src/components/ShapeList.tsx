@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { type Shape, getShapes } from '../services/shapeService';
+import { type Shape } from '../services/shapeService';
 
-const ShapeList: React.FC = () => {
-    const [shapes, setShapes] = useState<Shape[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+interface ShapeListProps {
+    shapes: Shape[];
+}
 
-    useEffect(() => {
-        const fetchShapes = async () => {
-            try {
-                const data = await getShapes();
-                setShapes(data);
-            } catch (err) {
-                setError('Failed to load shapes.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchShapes();
-    }, []);
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>{error}</div>;
+const ShapeList: React.FC<ShapeListProps> = ({ shapes }) => {
+    if (!shapes) return <div>Loading...</div>;
 
     return (
         <div style={{ width: '300px', padding: '10px', borderLeft: '1px solid #ccc', overflowY: 'auto', backgroundColor: '#fff', color: '#333' }}>

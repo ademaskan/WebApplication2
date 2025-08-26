@@ -13,29 +13,16 @@ import Draw from 'ol/interaction/Draw';
 import { Geometry } from 'ol/geom';
 
 interface MapComponentProps {
+    shapes: Shape[];
     drawType: 'Point' | 'LineString' | 'Polygon' | 'None';
     onDrawEnd: (geometry: Geometry) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ drawType, onDrawEnd }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
-    const [shapes, setShapes] = useState<Shape[]>([]);
     const drawInteractionRef = useRef<Draw | null>(null);
     const vectorSourceRef = useRef<VectorSource>(new VectorSource());
-
-    useEffect(() => {
-        const fetchShapes = async () => {
-            try {
-                const shapesData = await getShapes();
-                setShapes(shapesData);
-            } catch (error) {
-                console.error('Failed to fetch shapes:', error);
-            }
-        };
-
-        fetchShapes();
-    }, []);
 
     useEffect(() => {
         if (mapElement.current && !mapRef.current) {

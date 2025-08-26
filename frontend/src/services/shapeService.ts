@@ -91,3 +91,24 @@
             throw error;
         }
     };
+
+    export const deleteShapeById = async (id: number): Promise<void> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/DeleteById/${id}`, {
+                method: 'POST',
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const apiResponse: ApiResponse<object> = await response.json();
+    
+            if (!apiResponse.success) {
+                throw new Error(apiResponse.message || `Failed to delete shape with id ${id}`);
+            }
+        } catch (error) {
+            console.error(`Error deleting shape with id ${id}:`, error);
+            throw error;
+        }
+    };
