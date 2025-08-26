@@ -8,8 +8,18 @@ import DeleteShapeModal from './components/DeleteShapeModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
-import { getShapes, addShape, deleteAllShapes, deleteShapeById, type Shape, type AddShape } from './services/shapeService';
+import { getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, type Shape, type AddShape } from './services/shapeService';
 import logo from './assets/lk-amblem-1.png';
+
+const createTestData = (): AddShape[] => {
+  return [
+    { name: 'Ankara', geometry: { type: 'Point', coordinates: [32.85, 39.93] } },
+    { name: 'Istanbul', geometry: { type: 'Point', coordinates: [28.97, 41.00] } },
+    { name: 'İzmir-Manisa Highway', geometry: { type: 'LineString', coordinates: [[27.14, 38.42], [27.43, 38.62]] } },
+    { name: 'Antalya Coastline', geometry: { type: 'LineString', coordinates: [[30.71, 36.89], [30.9, 36.88]] } },
+    { name: 'Göreme National Park', geometry: { type: 'Polygon', coordinates: [[[34.82, 38.64], [34.85, 38.64], [34.85, 38.66], [34.82, 38.66], [34.82, 38.64]]] } },
+  ];
+};
 
 function App() {
   const [shapes, setShapes] = useState<Shape[]>([]);
@@ -86,6 +96,16 @@ function App() {
     setShapeToDelete(null);
   };
 
+  const handleCreateTestData = async () => {
+    try {
+      const testData = createTestData();
+      await addShapes(testData);
+      setRefreshShapes(prev => !prev);
+    } catch (error) {
+      console.error('Failed to create test data:', error);
+    }
+  };
+
   return (
     <div className="App">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', backgroundColor: '#f8f9fa' }}>
@@ -127,6 +147,11 @@ function App() {
           }}
         />
         <ShapeList shapes={shapes} />
+      </div>
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <button onClick={handleCreateTestData} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
+          Create Test Data
+        </button>
       </div>
     </div>
   );

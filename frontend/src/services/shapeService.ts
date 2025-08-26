@@ -112,3 +112,30 @@
             throw error;
         }
     };
+
+    export const addShapes = async (shapes: AddShape[]): Promise<Shape[]> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/AddRange`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(shapes),
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const apiResponse: ApiResponse<Shape[]> = await response.json();
+    
+            if (apiResponse.success && apiResponse.data) {
+                return apiResponse.data;
+            } else {
+                throw new Error(apiResponse.message || 'Failed to add shapes');
+            }
+        } catch (error) {
+            console.error('Error adding shapes:', error);
+            throw error;
+        }
+    };
