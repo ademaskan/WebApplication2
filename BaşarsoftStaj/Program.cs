@@ -31,19 +31,34 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, o => o.UseNetTopologySuite()));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IPointRepository, PointRepository>();
+builder.Services.AddScoped<IShapeRepository, ShapeRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 
 
-builder.Services.AddScoped<PointServiceADO>();
-builder.Services.AddScoped<PointServiceEFC>();
-builder.Services.AddScoped<PointServiceStatic>();
+builder.Services.AddScoped<ShapeServiceADO>();
+builder.Services.AddScoped<ShapeServiceEFC>();
+builder.Services.AddScoped<ShapeServiceStatic>();
 
 // Choose which service implementation to use for IPointService
 // Simply change this line to switch between implementations:
-builder.Services.AddScoped<IPointService, PointServiceEFC>();
+builder.Services.AddScoped<IShapeService, ShapeServiceEFC>();
+
+
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173") // Your React app's address
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
 
 var app = builder.Build();
 
@@ -55,6 +70,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(MyAllowSpecificOrigins); 
+
 app.MapControllers();
 
 app.Run();

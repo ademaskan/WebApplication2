@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Entity;
 
-public class PointE
+public class Shape
 {
     [Key]
     public int Id { get; set; }

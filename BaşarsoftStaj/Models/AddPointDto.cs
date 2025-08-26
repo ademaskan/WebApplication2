@@ -3,7 +3,7 @@ using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Models;
 
-public class AddPointDto
+public class AddShapeDto
 {
     [Required]
     [StringLength(100, MinimumLength = 1)]

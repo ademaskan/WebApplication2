@@ -5,9 +5,9 @@ using BaşarsoftStaj.Interfaces;
 
 namespace BaşarsoftStaj.Services
 {
-    public class PointRepository : Repository<Shape>, IPointRepository
+    public class ShapeRepository : Repository<Shape>, IShapeRepository
     {
-        public PointRepository(AppDbContext context) : base(context)
+        public ShapeRepository(AppDbContext context) : base(context)
         {
         }
 

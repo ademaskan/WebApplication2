@@ -10,13 +10,13 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<PointE> PointsEF { get; set; }
+    public DbSet<Shape> PointsEF { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<PointE>(entity =>
+        modelBuilder.Entity<Shape>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();

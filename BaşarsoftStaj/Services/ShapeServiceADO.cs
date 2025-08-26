@@ -9,12 +9,12 @@ using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Services;
 
-public class PointServiceADO : IPointService
+public class ShapeServiceADO : IShapeService
 {
     private readonly string _connectionString;
     private readonly string _masterConnectionString;
     
-    public PointServiceADO(IConfiguration configuration)
+    public ShapeServiceADO(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         var builder = new NpgsqlConnectionStringBuilder(_connectionString);
@@ -133,7 +133,7 @@ public class PointServiceADO : IPointService
         }
     }
 
-    public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
+    public ApiResponse<Shape> AddPoint(AddShapeDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
@@ -175,7 +175,7 @@ public class PointServiceADO : IPointService
         }
     }
 
-    public ApiResponse<List<Shape>> AddRangePoints(List<AddPointDto> pointDtos)
+    public ApiResponse<List<Shape>> AddRangePoints(List<AddShapeDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {

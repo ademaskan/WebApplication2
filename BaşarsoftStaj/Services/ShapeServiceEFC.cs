@@ -8,11 +8,11 @@ using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Services;
 
-public class PointServiceEFC : IPointService
+public class ShapeServiceEFC : IShapeService
 {
     private readonly AppDbContext _context;
 
-    public PointServiceEFC(AppDbContext context)
+    public ShapeServiceEFC(AppDbContext context)
     {
         _context = context;
     }
@@ -33,7 +33,7 @@ public class PointServiceEFC : IPointService
         return ApiResponse<Shape>.SuccessResponse(point, "PointRetrievedSuccessfully");
     }
 
-    public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
+    public ApiResponse<Shape> AddPoint(AddShapeDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
@@ -59,7 +59,7 @@ public class PointServiceEFC : IPointService
         }
     }
 
-    public ApiResponse<List<Shape>> AddRangePoints(List<AddPointDto> pointDtos)
+    public ApiResponse<List<Shape>> AddRangePoints(List<AddShapeDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {

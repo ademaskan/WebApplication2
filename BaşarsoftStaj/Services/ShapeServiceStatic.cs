@@ -6,7 +6,7 @@ using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Services;
 
-public class PointServiceStatic : IPointService
+public class ShapeServiceStatic : IShapeService
 {
     private static List<Shape> _points = new List<Shape>();
     private static int _idCounter = 1;
@@ -26,7 +26,7 @@ public class PointServiceStatic : IPointService
         return ApiResponse<Shape>.SuccessResponse(point, "PointRetrievedSuccessfully");
     }
 
-    public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
+    public ApiResponse<Shape> AddPoint(AddShapeDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
@@ -51,7 +51,7 @@ public class PointServiceStatic : IPointService
         }
     }
 
-    public ApiResponse<List<Shape>> AddRangePoints(List<AddPointDto> pointDtos)
+    public ApiResponse<List<Shape>> AddRangePoints(List<AddShapeDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {

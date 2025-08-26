@@ -8,11 +8,11 @@ namespace BaşarsoftStaj.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PointController : ControllerBase
+    public class ShapeController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public PointController(IUnitOfWork unitOfWork)
+        public ShapeController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
