@@ -161,6 +161,7 @@ function App() {
           }}
           focusGeometry={focusGeometry}
           resetViewToggle={resetViewToggle}
+          onFeatureClick={handleJumpToShape}
         />
         {isShapeListOpen && <ShapeList shapes={shapes} onJumpToShape={handleJumpToShape} />}
       </div>

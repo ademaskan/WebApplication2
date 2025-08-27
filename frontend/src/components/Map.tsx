@@ -19,9 +19,10 @@ interface MapComponentProps {
     onDrawEnd: (geometry: Geometry) => void;
     focusGeometry?: ShapeGeometry | null;
     resetViewToggle: boolean;
+    onFeatureClick: (geometry: ShapeGeometry) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, onFeatureClick }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
@@ -59,6 +60,28 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (!mapRef.current) return;
+        const map = mapRef.current;
+
+        const handleClick = (event: any) => {
+            map.forEachFeatureAtPixel(event.pixel, (feature: any) => {
+                const geojson = new GeoJSON().writeFeatureObject(feature, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857'
+                });
+                onFeatureClick(geojson.geometry);
+                return true;
+            });
+        };
+
+        map.on('click', handleClick);
+
+        return () => {
+            map.un('click', handleClick);
+        };
+    }, [onFeatureClick]);
 
     useEffect(() => {
         if (resetViewToggle && mapRef.current) {
