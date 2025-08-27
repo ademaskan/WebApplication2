@@ -5,7 +5,7 @@ export const pointStyle = new Style({
     image: new Icon({
         anchor: [0.5, 1],
         src: pinIcon,
-        scale: 0.1,
+        scale: 0.07,
     }),
 });
 

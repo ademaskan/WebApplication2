@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -8,6 +8,7 @@ import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { fromLonLat } from 'ol/proj';
+import Popup from './Popup';
 import { type Shape, type Geometry as ShapeGeometry } from '../services/shapeService';
 import Draw from 'ol/interaction/Draw';
 import { Geometry } from 'ol/geom';
@@ -27,6 +28,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
     const vectorSourceRef = useRef<VectorSource>(new VectorSource());
+    const [popupContent, setPopupContent] = useState('');
+    const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         if (mapElement.current && !mapRef.current) {
@@ -47,7 +50,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                 ],
                 view: new View({
                     center: fromLonLat([35.2433, 38.9637]), // Center of Turkey
-                    zoom: 5,
+                    zoom: 6,
                 }),
             });
             mapRef.current = map;
@@ -84,10 +87,34 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     }, [onFeatureClick]);
 
     useEffect(() => {
+        if (!mapRef.current) return;
+        const map = mapRef.current;
+
+        const handlePointerMove = (event: any) => {
+            const pixel = map.getEventPixel(event.originalEvent);
+            const feature = map.forEachFeatureAtPixel(pixel, (f) => f);
+
+            if (feature) {
+                const featureName = feature.get('name') || 'No name';
+                setPopupContent(featureName);
+                setPopupPosition({ x: event.originalEvent.clientX, y: event.originalEvent.clientY });
+            } else {
+                setPopupContent('');
+            }
+        };
+
+        map.on('pointermove', handlePointerMove);
+
+        return () => {
+            map.un('pointermove', handlePointerMove);
+        };
+    }, []);
+
+    useEffect(() => {
         if (resetViewToggle && mapRef.current) {
             mapRef.current.getView().animate({
                 center: fromLonLat([35.2433, 38.9637]),
-                zoom: 5,
+                zoom: 6,
                 duration: 1000,
             });
         }
@@ -160,7 +187,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     }, [drawType, onDrawEnd]);
 
     return (
-        <div ref={mapElement} style={{ width: '100%', height: '100%' }} />
+        <div ref={mapElement} style={{ width: '100%', height: '100%' }}>
+            <Popup content={popupContent} position={popupPosition} />
+        </div>
     );
 };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ShapeList from './components/ShapeList';
 import MapComponent from './components/Map';
 import Navbar from './components/Navbar';
@@ -34,6 +34,12 @@ function App() {
   const [shapeToDelete, setShapeToDelete] = useState<number | 'all' | null>(null);
   const [focusGeometry, setFocusGeometry] = useState<ShapeGeometry | null>(null);
   const [resetViewToggle, setResetViewToggle] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [visibleTypes, setVisibleTypes] = useState<{ [key: string]: boolean }>({
+    'Point': true,
+    'LineString': true,
+    'Polygon': true,
+  });
 
   useEffect(() => {
     const fetchShapes = async () => {
@@ -107,6 +113,23 @@ function App() {
     setResetViewToggle(prev => !prev);
   };
 
+  const handleFilterChange = (type: string, isVisible: boolean) => {
+    setVisibleTypes(prev => ({ ...prev, [type]: isVisible }));
+  };
+
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+  };
+
+  const filteredShapes = useMemo(() => {
+    const types = Object.keys(visibleTypes).filter(key => visibleTypes[key]);
+    
+    return shapes
+      .filter(shape => types.includes(shape.geometry.type))
+      .filter(shape => shape.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+  }, [shapes, visibleTypes, searchTerm]);
+
   const handleCreateTestData = async () => {
     try {
       const testData = createTestData();
@@ -132,6 +155,12 @@ function App() {
         onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
         onResetViewClick={handleResetView}
         onCreateTestDataClick={handleCreateTestData}
+        visibleTypes={visibleTypes}
+        onFilterChange={handleFilterChange}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        filteredShapes={filteredShapes}
+        onJumpToShape={handleJumpToShape}
       />
       <AddShapeModal
         isOpen={isAddModalOpen}
@@ -153,7 +182,7 @@ function App() {
       />
       <div className="map-container">
         <MapComponent 
-          shapes={shapes}
+          shapes={filteredShapes}
           drawType={drawType} 
           onDrawEnd={(geometry) => {
             setDrawnGeometry(geometry);
@@ -163,7 +192,7 @@ function App() {
           resetViewToggle={resetViewToggle}
           onFeatureClick={handleJumpToShape}
         />
-        {isShapeListOpen && <ShapeList shapes={shapes} onJumpToShape={handleJumpToShape} />}
+        {isShapeListOpen && <ShapeList shapes={filteredShapes} onJumpToShape={handleJumpToShape} onClose={() => setIsShapeListOpen(false)} />}
       </div>
     </div>
   );
