@@ -11,6 +11,7 @@ import { fromLonLat } from 'ol/proj';
 import { type Shape, type Geometry as ShapeGeometry } from '../services/shapeService';
 import Draw from 'ol/interaction/Draw';
 import { Geometry } from 'ol/geom';
+import { styleFunction } from './style';
 
 interface MapComponentProps {
     shapes: Shape[];
@@ -31,6 +32,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
 
             const vectorLayer = new VectorLayer({
                 source: vectorSource,
+                style: styleFunction
             });
 
             const map = new Map({
@@ -124,7 +126,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     }, [drawType, onDrawEnd]);
 
     return (
-        <div ref={mapElement} style={{ width: '1000px', height: '1000px' }} />
+        <div ref={mapElement} style={{ width: '100%', height: '100%' }} />
     );
 };
 
