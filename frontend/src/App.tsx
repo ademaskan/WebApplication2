@@ -131,6 +131,7 @@ function App() {
         onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
         onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
         onResetViewClick={handleResetView}
+        onCreateTestDataClick={handleCreateTestData}
       />
       <AddShapeModal
         isOpen={isAddModalOpen}
@@ -162,11 +163,6 @@ function App() {
           resetViewToggle={resetViewToggle}
         />
         {isShapeListOpen && <ShapeList shapes={shapes} onJumpToShape={handleJumpToShape} />}
-      </div>
-      <div style={{ padding: '10px', textAlign: 'center', position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
-        <button onClick={handleCreateTestData} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
-          Create Test Data
-        </button>
       </div>
     </div>
   );
