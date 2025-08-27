@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ShapeList from './components/ShapeList';
 import MapComponent from './components/Map';
 import Navbar from './components/Navbar';
@@ -8,7 +8,7 @@ import DeleteShapeModal from './components/DeleteShapeModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
-import { getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, type Shape, type AddShape } from './services/shapeService';
+import { getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, type Shape, type AddShape, type Geometry as ShapeGeometry } from './services/shapeService';
 import logo from './assets/lk-amblem-1.png';
 
 const createTestData = (): AddShape[] => {
@@ -26,11 +26,13 @@ function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isShapeListOpen, setIsShapeListOpen] = useState(false);
   const [shapeName, setShapeName] = useState('');
   const [drawType, setDrawType] = useState<'Point' | 'LineString' | 'Polygon' | 'None'>('None');
   const [drawnGeometry, setDrawnGeometry] = useState<Geometry | null>(null);
   const [refreshShapes, setRefreshShapes] = useState(false);
   const [shapeToDelete, setShapeToDelete] = useState<number | 'all' | null>(null);
+  const [focusGeometry, setFocusGeometry] = useState<ShapeGeometry | null>(null);
 
   useEffect(() => {
     const fetchShapes = async () => {
@@ -96,6 +98,10 @@ function App() {
     setShapeToDelete(null);
   };
 
+  const handleJumpToShape = (geometry: ShapeGeometry) => {
+    setFocusGeometry(geometry);
+  };
+
   const handleCreateTestData = async () => {
     try {
       const testData = createTestData();
@@ -118,6 +124,7 @@ function App() {
         isSaveDisabled={!drawnGeometry}
         onDeleteAllClick={() => handleDeleteRequest('all')}
         onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
+        onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
       />
       <AddShapeModal
         isOpen={isAddModalOpen}
@@ -145,8 +152,9 @@ function App() {
             setDrawnGeometry(geometry);
             setDrawType('None');
           }}
+          focusGeometry={focusGeometry}
         />
-        <ShapeList shapes={shapes} />
+        {isShapeListOpen && <ShapeList shapes={shapes} onJumpToShape={handleJumpToShape} />}
       </div>
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <button onClick={handleCreateTestData} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>

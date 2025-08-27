@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -8,7 +8,7 @@ import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { fromLonLat } from 'ol/proj';
-import { getShapes, type Shape } from '../services/shapeService';
+import { type Shape, type Geometry as ShapeGeometry } from '../services/shapeService';
 import Draw from 'ol/interaction/Draw';
 import { Geometry } from 'ol/geom';
 
@@ -16,9 +16,10 @@ interface MapComponentProps {
     shapes: Shape[];
     drawType: 'Point' | 'LineString' | 'Polygon' | 'None';
     onDrawEnd: (geometry: Geometry) => void;
+    focusGeometry?: ShapeGeometry | null;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
@@ -76,6 +77,27 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             }
         }
     }, [shapes]);
+
+    useEffect(() => {
+        if (focusGeometry && mapRef.current) {
+            const feature = new GeoJSON().readFeature({
+                type: 'Feature',
+                geometry: focusGeometry,
+                properties: {}
+            }, {
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:3857',
+            });
+            const geom = Array.isArray(feature) ? feature[0]?.getGeometry() : feature.getGeometry();
+            if (geom) {
+                mapRef.current.getView().fit(geom.getExtent(), {
+                    padding: [100, 100, 100, 100],
+                    duration: 1000,
+                    maxZoom: 15
+                });
+            }
+        }
+    }, [focusGeometry]);
 
     useEffect(() => {
         if (!mapRef.current) return;

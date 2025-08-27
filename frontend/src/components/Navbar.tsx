@@ -6,9 +6,10 @@ interface NavbarProps {
     isSaveDisabled: boolean;
     onDeleteAllClick: () => void;
     onDeleteShapeClick: () => void;
+    onToggleShapeList: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onAddShapeClick, onSaveClick, isSaveDisabled, onDeleteAllClick, onDeleteShapeClick }) => {
+const Navbar: React.FC<NavbarProps> = ({ onAddShapeClick, onSaveClick, isSaveDisabled, onDeleteAllClick, onDeleteShapeClick, onToggleShapeList }) => {
     const buttonStyle: React.CSSProperties = {
         backgroundColor: '#0056b3',
         color: 'white',
@@ -30,6 +31,7 @@ const Navbar: React.FC<NavbarProps> = ({ onAddShapeClick, onSaveClick, isSaveDis
             <button onClick={onSaveClick} style={isSaveDisabled ? disabledButtonStyle : buttonStyle} disabled={isSaveDisabled}>Save</button>
             <button onClick={onDeleteShapeClick} style={buttonStyle}>Delete Shape</button>
             <button onClick={onDeleteAllClick} style={buttonStyle}>Delete All</button>
+            <button onClick={onToggleShapeList} style={buttonStyle}>Toggle Shapes</button>
         </nav>
     );
 };
