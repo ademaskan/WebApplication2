@@ -69,6 +69,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
         const map = mapRef.current;
 
         const handleClick = (event: any) => {
+            if (drawType !== 'None') return;
             map.forEachFeatureAtPixel(event.pixel, (feature: any) => {
                 const geojson = new GeoJSON().writeFeatureObject(feature, {
                     dataProjection: 'EPSG:4326',
@@ -84,7 +85,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
         return () => {
             map.un('click', handleClick);
         };
-    }, [onFeatureClick]);
+    }, [onFeatureClick, drawType]);
 
     useEffect(() => {
         if (!mapRef.current) return;
