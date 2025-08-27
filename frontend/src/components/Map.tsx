@@ -18,9 +18,10 @@ interface MapComponentProps {
     drawType: 'Point' | 'LineString' | 'Polygon' | 'None';
     onDrawEnd: (geometry: Geometry) => void;
     focusGeometry?: ShapeGeometry | null;
+    resetViewToggle: boolean;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
@@ -58,6 +59,16 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (resetViewToggle && mapRef.current) {
+            mapRef.current.getView().animate({
+                center: fromLonLat([35.2433, 38.9637]),
+                zoom: 5,
+                duration: 1000,
+            });
+        }
+    }, [resetViewToggle]);
 
     useEffect(() => {
         if (vectorSourceRef.current) {

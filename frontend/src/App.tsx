@@ -33,6 +33,7 @@ function App() {
   const [refreshShapes, setRefreshShapes] = useState(false);
   const [shapeToDelete, setShapeToDelete] = useState<number | 'all' | null>(null);
   const [focusGeometry, setFocusGeometry] = useState<ShapeGeometry | null>(null);
+  const [resetViewToggle, setResetViewToggle] = useState(false);
 
   useEffect(() => {
     const fetchShapes = async () => {
@@ -102,6 +103,10 @@ function App() {
     setFocusGeometry(geometry);
   };
 
+  const handleResetView = () => {
+    setResetViewToggle(prev => !prev);
+  };
+
   const handleCreateTestData = async () => {
     try {
       const testData = createTestData();
@@ -125,6 +130,7 @@ function App() {
         onDeleteAllClick={() => handleDeleteRequest('all')}
         onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
         onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
+        onResetViewClick={handleResetView}
       />
       <AddShapeModal
         isOpen={isAddModalOpen}
@@ -153,6 +159,7 @@ function App() {
             setDrawType('None');
           }}
           focusGeometry={focusGeometry}
+          resetViewToggle={resetViewToggle}
         />
         {isShapeListOpen && <ShapeList shapes={shapes} onJumpToShape={handleJumpToShape} />}
       </div>
