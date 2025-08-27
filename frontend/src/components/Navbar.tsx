@@ -32,8 +32,11 @@ const Navbar: React.FC<NavbarProps> = ({ onAddShapeClick, onSaveClick, isSaveDis
             <button onClick={onSaveClick} style={isSaveDisabled ? disabledButtonStyle : buttonStyle} disabled={isSaveDisabled}>Save</button>
             <button onClick={onDeleteShapeClick} style={buttonStyle}>Delete Shape</button>
             <button onClick={onDeleteAllClick} style={buttonStyle}>Delete All</button>
-            <button onClick={onToggleShapeList} style={buttonStyle}>Toggle Shapes</button>
             <button onClick={onResetViewClick} style={buttonStyle}>Reset View</button>
+
+            <div style={{ marginLeft: 'auto' }}>
+                <button onClick={onToggleShapeList} style={buttonStyle}>View Geometry</button>
+            </div>
         </nav>
     );
 };
