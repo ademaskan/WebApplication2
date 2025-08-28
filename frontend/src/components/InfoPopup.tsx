@@ -4,11 +4,12 @@ import { type Shape } from '../services/shapeService';
 
 interface InfoPopupProps {
     shape: Shape | null;
+    containedShapes: Shape[];
     onClose: () => void;
     position: { x: number; y: number } | null;
 }
 
-const InfoPopup: React.FC<InfoPopupProps> = ({ shape, onClose, position }) => {
+const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, position }) => {
     if (!shape || !position) {
         return null;
     }
@@ -28,6 +29,16 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ shape, onClose, position }) => {
                 <p><strong>ID:</strong> {shape.id}</p>
                 <p><strong>Name:</strong> {shape.name}</p>
                 <p><strong>WKT:</strong> <span className="wkt-text">{shape.wkt}</span></p>
+                {containedShapes.length > 0 && (
+                    <div className="contained-shapes">
+                        <strong>Contained Shapes:</strong>
+                        <ul>
+                            {containedShapes.map(cs => (
+                                <li key={cs.id}>{cs.name} ({cs.geometry.type})</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );

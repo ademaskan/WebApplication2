@@ -13,6 +13,8 @@ import InfoPopup from './InfoPopup';
 import { type Shape, type Geometry as ShapeGeometry } from '../services/shapeService';
 import Draw from 'ol/interaction/Draw';
 import { Geometry } from 'ol/geom';
+import OLPolygon from 'ol/geom/Polygon';
+import SimpleGeometry from 'ol/geom/SimpleGeometry';
 import { styleFunction } from './style';
 import { getCenter } from 'ol/extent';
 
@@ -32,6 +34,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     const [popupContent, setPopupContent] = useState('');
     const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
     const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
+    const [containedShapes, setContainedShapes] = useState<Shape[]>([]);
     const [infoPopupPosition, setInfoPopupPosition] = useState<{ x: number, y: number } | null>(null);
 
     useEffect(() => {
@@ -77,6 +80,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             // Always hide the popup on any click to start fresh.
             setSelectedShape(null);
             setInfoPopupPosition(null);
+            setContainedShapes([]);
 
             const feature = map.forEachFeatureAtPixel(event.pixel, (f) => f);
 
@@ -85,6 +89,38 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                 if (shape) {
                     const geom = feature.getGeometry();
                     if (geom) {
+                        if (geom.getType() === 'Polygon') {
+                            const polygonGeom = geom as OLPolygon;
+                            const contained: Shape[] = [];
+                            vectorSourceRef.current.forEachFeature((otherFeature) => {
+                                if (feature === otherFeature) return;
+
+                                const otherGeom = otherFeature.getGeometry();
+                                if (!otherGeom) return;
+                                
+                                const otherShape = shapes.find(s => s.name === otherFeature.get('name'));
+                                if (!otherShape) return;
+                                
+                                if (otherGeom.getType() === 'Point' || otherGeom.getType() === 'LineString') {
+                                    const coordinates = (otherGeom as SimpleGeometry).getCoordinates();
+                                    
+                                    let isContained = false;
+                                    if (otherGeom.getType() === 'Point') {
+                                        if (coordinates && polygonGeom.intersectsCoordinate(coordinates as number[])) {
+                                            isContained = true;
+                                        }
+                                    } else { // LineString
+                                        isContained = !!coordinates && (coordinates as number[][]).every(coord => polygonGeom.intersectsCoordinate(coord));
+                                    }
+
+                                    if (isContained) {
+                                        contained.push(otherShape);
+                                    }
+                                }
+                            });
+                            setContainedShapes(contained);
+                        }
+
                         map.getView().fit(geom.getExtent(), {
                             padding: [150, 150, 150, 150],
                             duration: 1000,
@@ -230,7 +266,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     return (
         <div ref={mapElement} style={{ width: '100%', height: '100%', position: 'relative' }}>
             <Popup content={popupContent} position={popupPosition} />
-            <InfoPopup shape={selectedShape} onClose={handleCloseInfoPopup} position={infoPopupPosition} />
+            <InfoPopup shape={selectedShape} containedShapes={containedShapes} onClose={handleCloseInfoPopup} position={infoPopupPosition} />
         </div>
     );
 };
