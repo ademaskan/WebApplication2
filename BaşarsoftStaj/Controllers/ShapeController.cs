@@ -231,6 +231,47 @@ namespace BaşarsoftStaj.Controllers
                 };
             }
         }
+
+        [HttpPost("Merge")]
+        public async Task<ApiResponse<Shape>> Merge([FromBody] MergeShapesRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ApiResponse<Shape>
+                {
+                    Success = false,
+                    Message = "Invalid request model."
+                };
+            }
+
+            try
+            {
+                await _unitOfWork.Points.DeleteRangeAsync(request.DeleteIds);
+
+                var newShape = new Shape
+                {
+                    Name = request.Name,
+                    Geometry = request.Geometry
+                };
+
+                await _unitOfWork.Points.AddAsync(newShape);
+                await _unitOfWork.SaveAsync();
+
+                return new ApiResponse<Shape>
+                {
+                    Success = true,
+                    Data = newShape
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<Shape>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
     }
 
     public class UpdatePointRequest

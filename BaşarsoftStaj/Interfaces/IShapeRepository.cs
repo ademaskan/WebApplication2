@@ -6,5 +6,6 @@ namespace BaşarsoftStaj.Interfaces
     {
         Task<IEnumerable<Shape>> GetPointsByNameAsync(string name);
         Task DeleteAllAsync();
+        Task DeleteRangeAsync(IEnumerable<int> ids);
     }
 }

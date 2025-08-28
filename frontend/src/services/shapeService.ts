@@ -17,6 +17,12 @@
         name: string;
         geometry: Geometry;
     }
+
+    export interface MergeShapesRequest {
+        name: string;
+        geometry: Geometry;
+        deleteIds: number[];
+    }
     
     // This is based on the ApiResponse<T> from your backend
     export interface ApiResponse<T> {
@@ -140,3 +146,30 @@
             throw error;
         }
     };
+
+    export const mergeShapes = async (request: MergeShapesRequest): Promise<Shape> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/Merge`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const apiResponse: ApiResponse<Shape> = await response.json();
+
+            if (apiResponse.success && apiResponse.data) {
+                return apiResponse.data;
+            } else {
+                throw new Error(apiResponse.message || 'Failed to merge shapes');
+            }
+        } catch (error) {
+            console.error('Error merging shapes:', error);
+            throw error;
+        }
+    }

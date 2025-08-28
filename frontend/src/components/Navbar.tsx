@@ -10,6 +10,8 @@ interface NavbarProps {
     onToggleShapeList: () => void;
     onResetViewClick: () => void;
     onCreateTestDataClick: () => void;
+    onToggleMergeMode: () => void;
+    isMergeMode: boolean;
     visibleTypes: { [key: string]: boolean };
     onFilterChange: (type: string, isVisible: boolean) => void;
     searchTerm: string;
@@ -22,7 +24,8 @@ const Navbar: React.FC<NavbarProps> = ({
     onAddShapeClick, onSaveClick, isSaveDisabled, onDeleteAllClick, 
     onDeleteShapeClick, onToggleShapeList, onResetViewClick, 
     onCreateTestDataClick, visibleTypes, onFilterChange, 
-    searchTerm, onSearchChange, filteredShapes, onJumpToShape 
+    searchTerm, onSearchChange, filteredShapes, onJumpToShape,
+    onToggleMergeMode, isMergeMode
 }) => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -33,6 +36,11 @@ const Navbar: React.FC<NavbarProps> = ({
         padding: '10px 15px',
         borderRadius: '5px',
         cursor: 'pointer',
+    };
+    
+    const activeButtonSyle: React.CSSProperties = {
+        ...buttonStyle,
+        backgroundColor: '#004080',
     };
 
     const disabledButtonStyle: React.CSSProperties = {
@@ -47,6 +55,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <button onClick={onSaveClick} style={isSaveDisabled ? disabledButtonStyle : buttonStyle} disabled={isSaveDisabled}>Save</button>
             <button onClick={onDeleteShapeClick} style={buttonStyle}>Delete Shape</button>
             <button onClick={onResetViewClick} style={buttonStyle}>Reset View</button>
+            <button onClick={onToggleMergeMode} style={isMergeMode ? activeButtonSyle : buttonStyle}>Merge Polygons</button>
 
             <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button onClick={onDeleteAllClick} style={{...buttonStyle, backgroundColor: '#dc3545'}}>Delete All</button>

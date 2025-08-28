@@ -8,7 +8,10 @@ import DeleteShapeModal from './components/DeleteShapeModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
-import { getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, type Shape, type AddShape, type Geometry as ShapeGeometry } from './services/shapeService';
+import {
+    getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes,
+    type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest
+} from './services/shapeService';
 import logo from './assets/lk-amblem-1.png';
 
 const createTestData = (): AddShape[] => {
@@ -35,6 +38,7 @@ function App() {
   const [focusGeometry, setFocusGeometry] = useState<ShapeGeometry | null>(null);
   const [resetViewToggle, setResetViewToggle] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isMergeMode, setIsMergeMode] = useState(false);
   const [visibleTypes, setVisibleTypes] = useState<{ [key: string]: boolean }>({
     'Point': true,
     'LineString': true,
@@ -113,6 +117,29 @@ function App() {
     setResetViewToggle(prev => !prev);
   };
 
+  const handleMergeShapes = async (name: string, geometry: ShapeGeometry, deleteIds: number[]) => {
+    const request: MergeShapesRequest = {
+      name,
+      geometry,
+      deleteIds
+    };
+    console.log("handleMergeShapes called with request:", request);
+
+    try {
+      await mergeShapes(request);
+      console.log("Merge successful, refreshing shapes.");
+      setRefreshShapes(prev => !prev);
+      setIsMergeMode(false);
+    } catch (error) {
+      console.error('Failed to merge shapes:', error);
+      alert('Failed to merge shapes. See console for details.');
+    }
+  };
+  
+  const toggleMergeMode = () => {
+    setIsMergeMode(prev => !prev);
+  };
+
   const handleFilterChange = (type: string, isVisible: boolean) => {
     setVisibleTypes(prev => ({ ...prev, [type]: isVisible }));
   };
@@ -155,6 +182,8 @@ function App() {
         onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
         onResetViewClick={handleResetView}
         onCreateTestDataClick={handleCreateTestData}
+        onToggleMergeMode={toggleMergeMode}
+        isMergeMode={isMergeMode}
         visibleTypes={visibleTypes}
         onFilterChange={handleFilterChange}
         searchTerm={searchTerm}
@@ -190,6 +219,8 @@ function App() {
           }}
           focusGeometry={focusGeometry}
           resetViewToggle={resetViewToggle}
+          isMergeMode={isMergeMode}
+          onMerge={handleMergeShapes}
         />
         {isShapeListOpen && <ShapeList shapes={filteredShapes} onJumpToShape={handleJumpToShape} onClose={() => setIsShapeListOpen(false)} />}
       </div>

@@ -7,6 +7,10 @@ using BaşarsoftStaj.Utils;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Spatial4n.Shapes.Nts;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,8 +24,9 @@ builder.Services.AddControllers()
 
     });
 
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); 
+builder.Services.AddSwaggerGen();
 
 
 
@@ -50,12 +55,12 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-        policy =>
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
         {
-            policy.WithOrigins("http://localhost:5173") // Your React app's address
-                .AllowAnyHeader()
-                .AllowAnyMethod();
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
         });
 });
 
@@ -70,7 +75,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors(MyAllowSpecificOrigins); 
+app.UseCors("AllowAllOrigins"); 
+
+app.UseAuthorization();
 
 app.MapControllers();
 

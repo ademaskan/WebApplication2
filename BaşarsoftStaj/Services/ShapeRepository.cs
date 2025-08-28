@@ -23,5 +23,14 @@ namespace BaşarsoftStaj.Services
             var allShapes = await _dbSet.ToListAsync();
             _dbSet.RemoveRange(allShapes);
         }
+
+        public async Task DeleteRangeAsync(IEnumerable<int> ids)
+        {
+            var shapesToDelete = await _dbSet.Where(s => ids.Contains(s.Id)).ToListAsync();
+            if (shapesToDelete.Any())
+            {
+                _dbSet.RemoveRange(shapesToDelete);
+            }
+        }
     }
 }
