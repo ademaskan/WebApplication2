@@ -10,6 +10,7 @@
         id: number;
         name: string;
         geometry: Geometry;
+        wkt: string;
     }
     
     export interface AddShape {

@@ -9,10 +9,12 @@ import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { fromLonLat } from 'ol/proj';
 import Popup from './Popup';
+import InfoPopup from './InfoPopup';
 import { type Shape, type Geometry as ShapeGeometry } from '../services/shapeService';
 import Draw from 'ol/interaction/Draw';
 import { Geometry } from 'ol/geom';
 import { styleFunction } from './style';
+import { getCenter } from 'ol/extent';
 
 interface MapComponentProps {
     shapes: Shape[];
@@ -20,16 +22,17 @@ interface MapComponentProps {
     onDrawEnd: (geometry: Geometry) => void;
     focusGeometry?: ShapeGeometry | null;
     resetViewToggle: boolean;
-    onFeatureClick: (geometry: ShapeGeometry) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, onFeatureClick }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
     const vectorSourceRef = useRef<VectorSource>(new VectorSource());
     const [popupContent, setPopupContent] = useState('');
     const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+    const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
+    const [infoPopupPosition, setInfoPopupPosition] = useState<{ x: number, y: number } | null>(null);
 
     useEffect(() => {
         if (mapElement.current && !mapRef.current) {
@@ -70,14 +73,34 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
 
         const handleClick = (event: any) => {
             if (drawType !== 'None') return;
-            map.forEachFeatureAtPixel(event.pixel, (feature: any) => {
-                const geojson = new GeoJSON().writeFeatureObject(feature, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857'
-                });
-                onFeatureClick(geojson.geometry);
-                return true;
-            });
+
+            // Always hide the popup on any click to start fresh.
+            setSelectedShape(null);
+            setInfoPopupPosition(null);
+
+            const feature = map.forEachFeatureAtPixel(event.pixel, (f) => f);
+
+            if (feature) {
+                const shape = shapes.find(s => s.name === feature.get('name'));
+                if (shape) {
+                    const geom = feature.getGeometry();
+                    if (geom) {
+                        map.getView().fit(geom.getExtent(), {
+                            padding: [150, 150, 150, 150],
+                            duration: 1000,
+                            maxZoom: 15,
+                            callback: () => {
+                                const center = getCenter(geom.getExtent());
+                                const pixel = map.getPixelFromCoordinate(center);
+                                setSelectedShape(shape);
+                                if (pixel) {
+                                    setInfoPopupPosition({ x: pixel[0], y: pixel[1] });
+                                }
+                            }
+                        });
+                    }
+                }
+            }
         };
 
         map.on('click', handleClick);
@@ -85,20 +108,32 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
         return () => {
             map.un('click', handleClick);
         };
-    }, [onFeatureClick, drawType]);
+    }, [drawType, shapes]);
 
     useEffect(() => {
         if (!mapRef.current) return;
         const map = mapRef.current;
 
         const handlePointerMove = (event: any) => {
+            if (event.dragging) {
+                setPopupContent('');
+                return;
+            }
             const pixel = map.getEventPixel(event.originalEvent);
             const feature = map.forEachFeatureAtPixel(pixel, (f) => f);
 
             if (feature) {
                 const featureName = feature.get('name') || 'No name';
                 setPopupContent(featureName);
-                setPopupPosition({ x: event.originalEvent.clientX, y: event.originalEvent.clientY });
+
+                const geom = feature.getGeometry();
+                if (geom) {
+                    const center = getCenter(geom.getExtent());
+                    const centerPixel = map.getPixelFromCoordinate(center);
+                    if (centerPixel) {
+                        setPopupPosition({ x: centerPixel[0], y: centerPixel[1] });
+                    }
+                }
             } else {
                 setPopupContent('');
             }
@@ -110,6 +145,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             map.un('pointermove', handlePointerMove);
         };
     }, []);
+
+    const handleCloseInfoPopup = () => {
+        setSelectedShape(null);
+        setInfoPopupPosition(null);
+    };
 
     useEffect(() => {
         if (resetViewToggle && mapRef.current) {
@@ -188,8 +228,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     }, [drawType, onDrawEnd]);
 
     return (
-        <div ref={mapElement} style={{ width: '100%', height: '100%' }}>
+        <div ref={mapElement} style={{ width: '100%', height: '100%', position: 'relative' }}>
             <Popup content={popupContent} position={popupPosition} />
+            <InfoPopup shape={selectedShape} onClose={handleCloseInfoPopup} position={infoPopupPosition} />
         </div>
     );
 };
