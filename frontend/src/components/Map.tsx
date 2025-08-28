@@ -101,21 +101,31 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                                 const otherShape = shapes.find(s => s.name === otherFeature.get('name'));
                                 if (!otherShape) return;
                                 
-                                if (otherGeom.getType() === 'Point' || otherGeom.getType() === 'LineString') {
-                                    const coordinates = (otherGeom as SimpleGeometry).getCoordinates();
-                                    
-                                    let isContained = false;
-                                    if (otherGeom.getType() === 'Point') {
+                                let isContained = false;
+                                switch (otherGeom.getType()) {
+                                    case 'Point': {
+                                        const coordinates = (otherGeom as SimpleGeometry).getCoordinates();
                                         if (coordinates && polygonGeom.intersectsCoordinate(coordinates as number[])) {
                                             isContained = true;
                                         }
-                                    } else { // LineString
+                                        break;
+                                    }
+                                    case 'LineString': {
+                                        const coordinates = (otherGeom as SimpleGeometry).getCoordinates();
                                         isContained = !!coordinates && (coordinates as number[][]).every(coord => polygonGeom.intersectsCoordinate(coord));
+                                        break;
                                     }
+                                    case 'Polygon': {
+                                        const polygonCoordinates = (otherGeom as OLPolygon).getCoordinates();
+                                        if (polygonCoordinates?.[0]) {
+                                            isContained = polygonCoordinates[0].every(coord => polygonGeom.intersectsCoordinate(coord));
+                                        }
+                                        break;
+                                    }
+                                }
 
-                                    if (isContained) {
-                                        contained.push(otherShape);
-                                    }
+                                if (isContained) {
+                                    contained.push(otherShape);
                                 }
                             });
                             setContainedShapes(contained);
