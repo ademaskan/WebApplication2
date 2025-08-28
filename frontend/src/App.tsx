@@ -70,7 +70,7 @@ function App() {
 
       const newShape: AddShape = {
         name: shapeName,
-        geometry: geoJsonGeom,
+        geometry: geoJsonGeom as ShapeGeometry,
       };
 
       try {
