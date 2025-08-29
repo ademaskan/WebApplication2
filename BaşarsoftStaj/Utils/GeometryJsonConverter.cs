@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 
@@ -11,6 +12,8 @@ namespace BaşarsoftStaj.Utils
         private readonly WKTWriter _wktWriter = new WKTWriter();
         private readonly GeoJsonReader _geoJsonReader = new GeoJsonReader();
         private readonly GeoJsonWriter _geoJsonWriter = new GeoJsonWriter();
+
+        private readonly GeometryFactory _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
 
         public override Geometry Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -25,7 +28,9 @@ namespace BaşarsoftStaj.Utils
                     using (var doc = JsonDocument.ParseValue(ref reader))
                     {
                         var geoJsonString = doc.RootElement.GetRawText();
-                        return _geoJsonReader.Read<Geometry>(geoJsonString);
+                        var geometry = _geoJsonReader.Read<Geometry>(geoJsonString);
+                        geometry.SRID = _geometryFactory.SRID;
+                        return geometry;
                     }
                     
                 case JsonTokenType.Null:

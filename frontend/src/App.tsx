@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import AddShapeModal from './components/AddShapeModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import DeleteShapeModal from './components/DeleteShapeModal';
+import ErrorModal from './components/ErrorModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -40,6 +41,9 @@ function App() {
   const [resetViewToggle, setResetViewToggle] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isMergeMode, setIsMergeMode] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [clearLastDrawnFeature, setClearLastDrawnFeature] = useState(false);
   const [visibleTypes, setVisibleTypes] = useState<{ [key: string]: boolean }>({
     'Point': true,
     'LineString': true,
@@ -87,6 +91,10 @@ function App() {
         setRefreshShapes(prev => !prev);
       } catch (error) {
         console.error('Failed to save shape:', error);
+        setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
+        setIsErrorModalOpen(true);
+        setDrawnGeometry(null);
+        setClearLastDrawnFeature(prev => !prev);
       }
     }
   };
@@ -168,6 +176,8 @@ function App() {
       setRefreshShapes(prev => !prev);
     } catch (error) {
       console.error('Failed to create test data:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -213,6 +223,11 @@ function App() {
         title="Confirm Deletion"
         message={`Are you sure you want to delete ${shapeToDelete === 'all' ? 'all shapes' : 'this shape'}? This action cannot be undone.`}
       />
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        message={errorMessage}
+      />
       <div className="map-container">
         <MapComponent 
           shapes={filteredShapes}
@@ -225,6 +240,7 @@ function App() {
           resetViewToggle={resetViewToggle}
           isMergeMode={isMergeMode}
           onMerge={handleMergeShapes}
+          clearLastDrawnFeature={clearLastDrawnFeature}
         />
         {isShapeListOpen && <ShapeList shapes={filteredShapes} onJumpToShape={handleJumpToShape} onClose={() => setIsShapeListOpen(false)} />}
       </div>

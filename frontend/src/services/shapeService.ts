@@ -64,16 +64,16 @@
                 body: JSON.stringify(shape),
             });
     
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-    
             const apiResponse: ApiResponse<Shape> = await response.json();
     
-            if (apiResponse.success && apiResponse.data) {
+            if (!response.ok || !apiResponse.success) {
+                throw new Error(apiResponse.message || 'Failed to add shape');
+            }
+    
+            if (apiResponse.data) {
                 return apiResponse.data;
             } else {
-                throw new Error(apiResponse.message || 'Failed to add shape');
+                throw new Error('No data returned from API after adding shape');
             }
         } catch (error) {
             console.error('Error adding shape:', error);
@@ -133,16 +133,16 @@
                 body: JSON.stringify(shapes),
             });
     
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-    
             const apiResponse: ApiResponse<Shape[]> = await response.json();
     
-            if (apiResponse.success && apiResponse.data) {
+            if (!response.ok || !apiResponse.success) {
+                throw new Error(apiResponse.message || 'Failed to add shapes');
+            }
+    
+            if (apiResponse.data) {
                 return apiResponse.data;
             } else {
-                throw new Error(apiResponse.message || 'Failed to add shapes');
+                throw new Error('No data returned from API after adding shapes');
             }
         } catch (error) {
             console.error('Error adding shapes:', error);

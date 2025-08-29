@@ -170,6 +170,32 @@ namespace BaşarsoftStaj.Controllers
         {
             try
             {
+                if (pointDto.Geometry.OgcGeometryType == OgcGeometryType.LineString)
+                {
+                    string[] typesToCheck = {};
+                    if (pointDto.Type == "A")
+                    {
+                        typesToCheck = new[] { "B", "C" };
+                    }
+                    else if (pointDto.Type == "B" || pointDto.Type == "C")
+                    {
+                        typesToCheck = new[] { "A" };
+                    }
+
+                    if (typesToCheck.Length > 0)
+                    {
+                        var intersects = await _unitOfWork.Points.HasIntersectingLineStringsAsync(pointDto.Geometry, typesToCheck);
+                        if (intersects)
+                        {
+                            return new ApiResponse<Shape>
+                            {
+                                Success = false,
+                                Message = $"The new LineString of type {pointDto.Type} cannot intersect with existing LineStrings of type(s) {string.Join(", ", typesToCheck)}."
+                            };
+                        }
+                    }
+                }
+                
                 var point = new Shape
                 {
                     Name = pointDto.Name,
@@ -205,6 +231,32 @@ namespace BaşarsoftStaj.Controllers
 
                 foreach (var dto in pointDtos)
                 {
+                    if (dto.Geometry.OgcGeometryType == OgcGeometryType.LineString)
+                    {
+                        string[] typesToCheck = {};
+                        if (dto.Type == "A")
+                        {
+                            typesToCheck = new[] { "B", "C" };
+                        }
+                        else if (dto.Type == "B" || dto.Type == "C")
+                        {
+                            typesToCheck = new[] { "A" };
+                        }
+
+                        if (typesToCheck.Length > 0)
+                        {
+                            var intersects = await _unitOfWork.Points.HasIntersectingLineStringsAsync(dto.Geometry, typesToCheck);
+                            if (intersects)
+                            {
+                                return new ApiResponse<List<Shape>>
+                                {
+                                    Success = false,
+                                    Message = $"A LineString of type {dto.Type} named '{dto.Name}' cannot intersect with existing LineStrings of type(s) {string.Join(", ", typesToCheck)}."
+                                };
+                            }
+                        }
+                    }
+                    
                     var point = new Shape
                     {
                         Name = dto.Name,

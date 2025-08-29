@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BaşarsoftStaj.Data;
 using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
+using NetTopologySuite.Geometries;
 
 namespace BaşarsoftStaj.Services
 {
@@ -31,6 +32,13 @@ namespace BaşarsoftStaj.Services
             {
                 _dbSet.RemoveRange(shapesToDelete);
             }
+        }
+
+        public async Task<bool> HasIntersectingLineStringsAsync(Geometry geometry, string[] types)
+        {
+            return await _dbSet
+                .Where(s => s.Geometry.OgcGeometryType == OgcGeometryType.LineString && types.Contains(s.Type))
+                .AnyAsync(s => s.Geometry.Intersects(geometry));
         }
     }
 }

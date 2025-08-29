@@ -28,14 +28,16 @@ interface MapComponentProps {
     resetViewToggle: boolean;
     isMergeMode: boolean;
     onMerge: (name: string, geometry: ShapeGeometry, deleteIds: number[]) => void;
+    clearLastDrawnFeature: boolean;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, isMergeMode, onMerge }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, isMergeMode, onMerge, clearLastDrawnFeature }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
     const selectInteractionRef = useRef<Select | null>(null);
     const vectorSourceRef = useRef<VectorSource>(new VectorSource());
+    const lastDrawnFeatureRef = useRef<Feature | null>(null);
     const [popupContent, setPopupContent] = useState('');
     const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
     const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
@@ -344,6 +346,15 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     }, [focusGeometry]);
 
     useEffect(() => {
+        if (clearLastDrawnFeature && lastDrawnFeatureRef.current) {
+            if (vectorSourceRef.current.hasFeature(lastDrawnFeatureRef.current)) {
+                vectorSourceRef.current.removeFeature(lastDrawnFeatureRef.current);
+            }
+            lastDrawnFeatureRef.current = null;
+        }
+    }, [clearLastDrawnFeature]);
+
+    useEffect(() => {
         if (!mapRef.current) return;
 
         if (drawInteractionRef.current) {
@@ -359,6 +370,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             mapRef.current.addInteraction(newDrawInteraction);
 
             newDrawInteraction.on('drawend', (event) => {
+                lastDrawnFeatureRef.current = event.feature;
                 if (event.feature.getGeometry()) {
                     onDrawEnd(event.feature.getGeometry()!);
                 }
