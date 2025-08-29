@@ -33,7 +33,7 @@ public class ShapeServiceEFC : IShapeService
         return ApiResponse<Shape>.SuccessResponse(point, "PointRetrievedSuccessfully");
     }
 
-    public ApiResponse<Shape> AddPoint(AddShapeDto pointDto)
+    public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
@@ -45,7 +45,8 @@ public class ShapeServiceEFC : IShapeService
             var point = new Shape
             {
                 Name = pointDto.Name,
-                Geometry = pointDto.Geometry
+                Geometry = pointDto.Geometry,
+                Type = pointDto.Type
             };
 
             _context.PointsEF.Add(point);
@@ -59,7 +60,7 @@ public class ShapeServiceEFC : IShapeService
         }
     }
 
-    public ApiResponse<List<Shape>> AddRangePoints(List<AddShapeDto> pointDtos)
+    public ApiResponse<List<Shape>> AddRangePoints(List<AddPointDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {
@@ -80,7 +81,8 @@ public class ShapeServiceEFC : IShapeService
                 var point = new Shape
                 {
                     Name = pointDto.Name,
-                    Geometry = pointDto.Geometry
+                    Geometry = pointDto.Geometry,
+                    Type = pointDto.Type
                 };
                 validPoints.Add(point);
             }

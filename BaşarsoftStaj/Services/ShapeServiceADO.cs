@@ -133,7 +133,7 @@ public class ShapeServiceADO : IShapeService
         }
     }
 
-    public ApiResponse<Shape> AddPoint(AddShapeDto pointDto)
+    public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
     {
         if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
         {
@@ -175,7 +175,7 @@ public class ShapeServiceADO : IShapeService
         }
     }
 
-    public ApiResponse<List<Shape>> AddRangePoints(List<AddShapeDto> pointDtos)
+    public ApiResponse<List<Shape>> AddRangePoints(List<AddPointDto> pointDtos)
     {
         if (pointDtos == null || !pointDtos.Any())
         {

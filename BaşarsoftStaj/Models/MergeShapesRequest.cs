@@ -13,6 +13,9 @@ namespace BaşarsoftStaj.Models
         public Geometry Geometry { get; set; }
 
         [Required]
+        public string Type { get; set; } = string.Empty;
+
+        [Required]
         [MinLength(2)]
         public int[] DeleteIds { get; set; }
     }

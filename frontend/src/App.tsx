@@ -16,11 +16,11 @@ import logo from './assets/lk-amblem-1.png';
 
 const createTestData = (): AddShape[] => {
   return [
-    { name: 'Ankara', geometry: { type: 'Point', coordinates: [32.85, 39.93] } },
-    { name: 'Istanbul', geometry: { type: 'Point', coordinates: [28.97, 41.00] } },
-    { name: 'İzmir-Manisa Highway', geometry: { type: 'LineString', coordinates: [[27.14, 38.42], [27.43, 38.62]] } },
-    { name: 'Antalya Coastline', geometry: { type: 'LineString', coordinates: [[30.71, 36.89], [30.9, 36.88]] } },
-    { name: 'Göreme National Park', geometry: { type: 'Polygon', coordinates: [[[34.82, 38.64], [34.85, 38.64], [34.85, 38.66], [34.82, 38.66], [34.82, 38.64]]] } },
+    { name: 'Ankara', geometry: { type: 'Point', coordinates: [32.85, 39.93] }, type: 'A' },
+    { name: 'Istanbul', geometry: { type: 'Point', coordinates: [28.97, 41.00] }, type: 'B' },
+    { name: 'İzmir-Manisa Highway', geometry: { type: 'LineString', coordinates: [[27.14, 38.42], [27.43, 38.62]] }, type: 'C' },
+    { name: 'Antalya Coastline', geometry: { type: 'LineString', coordinates: [[30.71, 36.89], [30.9, 36.88]] }, type: 'A' },
+    { name: 'Göreme National Park', geometry: { type: 'Polygon', coordinates: [[[34.82, 38.64], [34.85, 38.64], [34.85, 38.66], [34.82, 38.66], [34.82, 38.64]]] }, type: 'B' },
   ];
 };
 
@@ -31,6 +31,7 @@ function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isShapeListOpen, setIsShapeListOpen] = useState(false);
   const [shapeName, setShapeName] = useState('');
+  const [shapeType, setShapeType] = useState<'A' | 'B' | 'C'>('A');
   const [drawType, setDrawType] = useState<'Point' | 'LineString' | 'Polygon' | 'None'>('None');
   const [drawnGeometry, setDrawnGeometry] = useState<Geometry | null>(null);
   const [refreshShapes, setRefreshShapes] = useState(false);
@@ -58,9 +59,10 @@ function App() {
     fetchShapes();
   }, [refreshShapes]);
 
-  const handleStartDrawing = (name: string, type: 'Point' | 'LineString' | 'Polygon') => {
+  const handleStartDrawing = (name: string, geometryType: 'Point' | 'LineString' | 'Polygon', type: 'A' | 'B' | 'C') => {
     setShapeName(name);
-    setDrawType(type);
+    setDrawType(geometryType);
+    setShapeType(type);
     setDrawnGeometry(null);
   };
   
@@ -75,6 +77,7 @@ function App() {
       const newShape: AddShape = {
         name: shapeName,
         geometry: geoJsonGeom as ShapeGeometry,
+        type: shapeType,
       };
 
       try {
@@ -121,6 +124,7 @@ function App() {
     const request: MergeShapesRequest = {
       name,
       geometry,
+      type: 'A',
       deleteIds
     };
     console.log("handleMergeShapes called with request:", request);

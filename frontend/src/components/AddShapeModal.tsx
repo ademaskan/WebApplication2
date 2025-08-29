@@ -3,19 +3,20 @@ import React, { useState } from 'react';
 interface AddShapeModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onStartDrawing: (name: string, type: 'Point' | 'LineString' | 'Polygon') => void;
+    onStartDrawing: (name: string, geometryType: 'Point' | 'LineString' | 'Polygon', type: 'A' | 'B' | 'C') => void;
 }
 
 const AddShapeModal: React.FC<AddShapeModalProps> = ({ isOpen, onClose, onStartDrawing }) => {
     const [name, setName] = useState('');
-    const [type, setType] = useState<'Point' | 'LineString' | 'Polygon'>('Point');
+    const [geometryType, setGeometryType] = useState<'Point' | 'LineString' | 'Polygon'>('Point');
+    const [type, setType] = useState<'A' | 'B' | 'C'>('A');
 
     if (!isOpen) {
         return null;
     }
 
     const handleStartDrawing = () => {
-        onStartDrawing(name, type);
+        onStartDrawing(name, geometryType, type);
         onClose();
     };
 
@@ -31,13 +32,22 @@ const AddShapeModal: React.FC<AddShapeModalProps> = ({ isOpen, onClose, onStartD
                     style={{ width: '95%', padding: '8px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '3px' }}
                 />
                 <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value as any)}
+                    value={geometryType}
+                    onChange={(e) => setGeometryType(e.target.value as any)}
                     style={{ width: '100%', padding: '8px', marginBottom: '20px', border: '1px solid #ccc', borderRadius: '3px' }}
                 >
                     <option value="Point">Point</option>
                     <option value="LineString">LineString</option>
                     <option value="Polygon">Polygon</option>
+                </select>
+                <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value as any)}
+                    style={{ width: '100%', padding: '8px', marginBottom: '20px', border: '1px solid #ccc', borderRadius: '3px' }}
+                >
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
                 </select>
                 <button onClick={handleStartDrawing} style={{ backgroundColor: '#0056b3', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer' }}>Start Drawing</button>
                 <button onClick={onClose} style={{ marginLeft: '10px', backgroundColor: '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer' }}>Cancel</button>

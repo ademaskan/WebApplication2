@@ -310,6 +310,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                         geometry: shape.geometry,
                         properties: {
                             name: shape.name,
+                            type: shape.type,
                         },
                     })),
                 }, {

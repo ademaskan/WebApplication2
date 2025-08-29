@@ -10,18 +10,21 @@
         id: number;
         name: string;
         geometry: Geometry;
+        type: string;
         wkt: string;
     }
     
     export interface AddShape {
         name: string;
         geometry: Geometry;
+        type: string;
     }
 
     export interface MergeShapesRequest {
         name: string;
         geometry: Geometry;
         deleteIds: number[];
+        type: string;
     }
     
     // This is based on the ApiResponse<T> from your backend

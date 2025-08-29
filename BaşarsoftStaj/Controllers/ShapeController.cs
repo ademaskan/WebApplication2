@@ -166,14 +166,15 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<ApiResponse<Shape>> Add([FromBody] AddShapeDto pointDto)
+        public async Task<ApiResponse<Shape>> Add([FromBody] AddPointDto pointDto)
         {
             try
             {
                 var point = new Shape
                 {
                     Name = pointDto.Name,
-                    Geometry = pointDto.Geometry
+                    Geometry = pointDto.Geometry,
+                    Type = pointDto.Type
                 };
 
                 await _unitOfWork.Points.AddAsync(point);
@@ -196,7 +197,7 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("AddRange")]
-        public async Task<ApiResponse<List<Shape>>> AddRange([FromBody] List<AddShapeDto> pointDtos)
+        public async Task<ApiResponse<List<Shape>>> AddRange([FromBody] List<AddPointDto> pointDtos)
         {
             try
             {
@@ -207,7 +208,8 @@ namespace BaşarsoftStaj.Controllers
                     var point = new Shape
                     {
                         Name = dto.Name,
-                        Geometry = dto.Geometry
+                        Geometry = dto.Geometry,
+                        Type = dto.Type
                     };
 
                     await _unitOfWork.Points.AddAsync(point);
@@ -251,7 +253,8 @@ namespace BaşarsoftStaj.Controllers
                 var newShape = new Shape
                 {
                     Name = request.Name,
-                    Geometry = request.Geometry
+                    Geometry = request.Geometry,
+                    Type = request.Type,
                 };
 
                 await _unitOfWork.Points.AddAsync(newShape);

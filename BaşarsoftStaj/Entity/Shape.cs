@@ -17,4 +17,7 @@ public class Shape
     [Required]
     public Geometry Geometry { get; set; }
     
+    [Required]
+    public string Type { get; set; } = string.Empty;
+    
 }
