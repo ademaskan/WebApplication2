@@ -1,5 +1,7 @@
 import { Style, Icon, Stroke, Fill } from 'ol/style';
-import pinIcon from '../assets/placeholder.png';
+import pinIconRed from '../assets/placeholder.png';
+import pinIconGreen from '../assets/placeholder-green.png';
+import pinIconBlue from '../assets/placeholder-blue.png';
 
 const typeColors: { [key: string]: string } = {
     'A': '#ff0000', // Red
@@ -7,12 +9,17 @@ const typeColors: { [key: string]: string } = {
     'C': '#0000ff', // Blue
 };
 
+const typeIcons: { [key: string]: string } = {
+    'A': pinIconRed,
+    'B': pinIconGreen,
+    'C': pinIconBlue,
+};
+
 export const pointStyle = (type: string) => new Style({
     image: new Icon({
         anchor: [0.5, 1],
-        src: pinIcon,
+        src: typeIcons[type] || pinIconRed,
         scale: 0.07,
-        color: typeColors[type] || '#0056b3',
     }),
 });
 

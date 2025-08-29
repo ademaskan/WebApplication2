@@ -21,6 +21,7 @@ const ShapeList: React.FC<ShapeListProps> = ({ shapes, onJumpToShape, onClose })
                     <li key={shape.id} style={{ marginBottom: '15px', border: '1px solid #0056b3', padding: '10px', borderRadius: '5px' }}>
                         <strong>ID:</strong> {shape.id}<br />
                         <strong>Name:</strong> {shape.name}<br />
+                        <strong>Type:</strong> {shape.type}<br />
                         <button onClick={() => onJumpToShape(shape.geometry)} style={{ marginTop: '5px', backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer' }}>
                             Go to
                         </button>

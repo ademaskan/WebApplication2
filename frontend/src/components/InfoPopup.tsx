@@ -28,6 +28,7 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, 
             <div className="info-popup-body">
                 <p><strong>ID:</strong> {shape.id}</p>
                 <p><strong>Name:</strong> {shape.name}</p>
+                <p><strong>Type:</strong> {shape.type}</p>
                 <p><strong>WKT:</strong> <span className="wkt-text">{shape.wkt}</span></p>
                 {containedShapes.length > 0 && (
                     <div className="contained-shapes">

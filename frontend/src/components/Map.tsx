@@ -262,7 +262,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
 
             if (feature) {
                 const featureName = feature.get('name') || 'No name';
-                setPopupContent(featureName);
+                const featureType = feature.get('type') || 'N/A';
+                setPopupContent(`${featureName} (Type: ${featureType})`);
 
                 const geom = feature.getGeometry();
                 if (geom) {
