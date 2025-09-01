@@ -187,6 +187,25 @@ function App() {
 
   return (
     <div className="App">
+      
+      <Navbar 
+        onAddShapeClick={() => setIsAddModalOpen(true)} 
+        onSaveClick={handleSave} 
+        isSaveDisabled={!drawnGeometry}
+        onDeleteAllClick={() => handleDeleteRequest('all')}
+        onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
+        onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
+        onResetViewClick={handleResetView}
+        onCreateTestDataClick={handleCreateTestData}
+        onToggleMergeMode={toggleMergeMode}
+        isMergeMode={isMergeMode}
+        visibleTypes={visibleTypes}
+        onFilterChange={handleFilterChange}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        filteredShapes={filteredShapes}
+        onJumpToShape={handleJumpToShape}
+      />
       <AddShapeModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -211,24 +230,6 @@ function App() {
         message={errorMessage}
       />
       <div className="map-container">
-        <Navbar 
-          onAddShapeClick={() => setIsAddModalOpen(true)} 
-          onSaveClick={handleSave} 
-          isSaveDisabled={!drawnGeometry}
-          onDeleteAllClick={() => handleDeleteRequest('all')}
-          onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
-          onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
-          onResetViewClick={handleResetView}
-          onCreateTestDataClick={handleCreateTestData}
-          onToggleMergeMode={toggleMergeMode}
-          isMergeMode={isMergeMode}
-          visibleTypes={visibleTypes}
-          onFilterChange={handleFilterChange}
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          filteredShapes={filteredShapes}
-          onJumpToShape={handleJumpToShape}
-        />
         <MapComponent 
           shapes={filteredShapes}
           drawType={drawType} 
