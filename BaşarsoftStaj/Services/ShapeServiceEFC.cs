@@ -35,17 +35,19 @@ public class ShapeServiceEFC : IShapeService
 
     public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
     {
-        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
+        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.Geometry))
         {
             return ApiResponse<Shape>.ErrorResponse("ValidationError");
         }
 
         try
         {
+            var reader = new GeoJsonReader();
+            var geometry = reader.Read<Geometry>(pointDto.Geometry);
             var point = new Shape
             {
                 Name = pointDto.Name,
-                Geometry = pointDto.Geometry,
+                Geometry = geometry,
                 Type = pointDto.Type
             };
 
@@ -68,20 +70,22 @@ public class ShapeServiceEFC : IShapeService
         }
 
         var validPoints = new List<Shape>();
+        var reader = new GeoJsonReader();
 
         foreach (var pointDto in pointDtos)
         {
-            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
+            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.Geometry))
             {
                 return ApiResponse<List<Shape>>.ErrorResponse("ValidationError");
             }
 
             try
             {
+                var geometry = reader.Read<Geometry>(pointDto.Geometry);
                 var point = new Shape
                 {
                     Name = pointDto.Name,
-                    Geometry = pointDto.Geometry,
+                    Geometry = geometry,
                     Type = pointDto.Type
                 };
                 validPoints.Add(point);

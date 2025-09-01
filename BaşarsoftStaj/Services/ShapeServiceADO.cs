@@ -135,13 +135,14 @@ public class ShapeServiceADO : IShapeService
 
     public ApiResponse<Shape> AddPoint(AddPointDto pointDto)
     {
-        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
+        if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.Geometry))
         {
             return ApiResponse<Shape>.ErrorResponse("ValidationError");
         }
 
         try
         {
+            var geometry = new GeoJsonReader().Read<Geometry>(pointDto.Geometry);
             using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
             
@@ -151,7 +152,7 @@ public class ShapeServiceADO : IShapeService
                 RETURNING Id, Name, ST_AsText(Geometry) as WKT", connection);
             
             command.Parameters.AddWithValue("@Name", pointDto.Name);
-            command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(pointDto.Geometry));
+            command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(geometry));
             
             using var reader = command.ExecuteReader();
             
@@ -185,7 +186,7 @@ public class ShapeServiceADO : IShapeService
         // Validate all points before processing
         foreach (var pointDto in pointDtos)
         {
-            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || pointDto.Geometry == null)
+            if (pointDto == null || string.IsNullOrEmpty(pointDto.Name) || string.IsNullOrEmpty(pointDto.Geometry))
             {
                 return ApiResponse<List<Shape>>.ErrorResponse("ValidationError");
             }
@@ -209,8 +210,9 @@ public class ShapeServiceADO : IShapeService
                         VALUES (@Name, ST_GeomFromText(@WKT, 4326)) 
                         RETURNING Id, Name, ST_AsText(Geometry) as WKT", connection, transaction);
                     
+                    var geometry = new GeoJsonReader().Read<Geometry>(pointDto.Geometry);
                     command.Parameters.AddWithValue("@Name", pointDto.Name);
-                    command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(pointDto.Geometry));
+                    command.Parameters.AddWithValue("@WKT", new WKTWriter().Write(geometry));
                     
                     using var reader = command.ExecuteReader();
                     

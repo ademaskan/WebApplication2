@@ -10,7 +10,7 @@ public class AddPointDto
     public string Name { get; set; } = string.Empty;
     
     [Required]
-    public Geometry Geometry { get; set; }
+    public string Geometry { get; set; }
     
     [Required]
     public string Type { get; set; } = string.Empty;

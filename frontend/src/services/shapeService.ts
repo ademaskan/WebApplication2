@@ -12,12 +12,14 @@
         geometry: Geometry;
         type: string;
         wkt: string;
+        imagePath?: string;
     }
     
     export interface AddShape {
         name: string;
         geometry: Geometry;
         type: string;
+        image?: File;
     }
 
     export interface MergeShapesRequest {
@@ -56,20 +58,25 @@
     
     export const addShape = async (shape: AddShape): Promise<Shape> => {
         try {
+            const formData = new FormData();
+            formData.append('name', shape.name);
+            formData.append('geometry', JSON.stringify(shape.geometry));
+            formData.append('type', shape.type);
+            if (shape.image) {
+                formData.append('image', shape.image);
+            }
+
             const response = await fetch(`${API_BASE_URL}/Shape/Add`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(shape),
+                body: formData,
             });
-    
+
             const apiResponse: ApiResponse<Shape> = await response.json();
-    
+
             if (!response.ok || !apiResponse.success) {
                 throw new Error(apiResponse.message || 'Failed to add shape');
             }
-    
+
             if (apiResponse.data) {
                 return apiResponse.data;
             } else {

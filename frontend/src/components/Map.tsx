@@ -23,7 +23,7 @@ import { styleFunction } from './style';
 interface MapComponentProps {
     shapes: Shape[];
     drawType: 'Point' | 'LineString' | 'Polygon' | 'None';
-    onDrawEnd: (geometry: Geometry) => void;
+    onDrawEnd: (geometry: Geometry, image?: File) => void;
     focusGeometry?: ShapeGeometry | null;
     resetViewToggle: boolean;
     isMergeMode: boolean;
@@ -225,10 +225,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                             setContainedShapes(contained);
                         }
 
+                        const maxZoom = geom.getType() === 'Point' ? 14 : 17;
                         map.getView().fit(geom.getExtent(), {
-                            padding: [150, 150, 150, 150],
+                            padding: [250, 150, 150, 150],
                             duration: 1000,
-                            maxZoom: 15,
+                            maxZoom: maxZoom,
                             callback: () => {
                                 const center = getCenter(geom.getExtent());
                                 const pixel = map.getPixelFromCoordinate(center);
@@ -314,6 +315,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                         properties: {
                             name: shape.name,
                             type: shape.type,
+                            imagePath: shape.imagePath,
                         },
                     })),
                 }, {
@@ -336,10 +338,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             });
             const geom = Array.isArray(feature) ? feature[0]?.getGeometry() : feature.getGeometry();
             if (geom) {
+                const maxZoom = geom.getType() === 'Point' ? 12 : 14;
                 mapRef.current.getView().fit(geom.getExtent(), {
-                    padding: [100, 100, 100, 100],
+                    padding: [250, 100, 100, 100],
                     duration: 1000,
-                    maxZoom: 15
+                    maxZoom: maxZoom
                 });
             }
         }
@@ -372,6 +375,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             newDrawInteraction.on('drawend', (event) => {
                 lastDrawnFeatureRef.current = event.feature;
                 if (event.feature.getGeometry()) {
+                    // This component does not have direct access to the image file.
+                    // The parent component will pass it to the service.
                     onDrawEnd(event.feature.getGeometry()!);
                 }
             });

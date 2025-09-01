@@ -35,6 +35,7 @@ function App() {
   const [shapeType, setShapeType] = useState<'A' | 'B' | 'C'>('A');
   const [drawType, setDrawType] = useState<'Point' | 'LineString' | 'Polygon' | 'None'>('None');
   const [drawnGeometry, setDrawnGeometry] = useState<Geometry | null>(null);
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const [refreshShapes, setRefreshShapes] = useState(false);
   const [shapeToDelete, setShapeToDelete] = useState<number | 'all' | null>(null);
   const [focusGeometry, setFocusGeometry] = useState<ShapeGeometry | null>(null);
@@ -63,10 +64,11 @@ function App() {
     fetchShapes();
   }, [refreshShapes]);
 
-  const handleStartDrawing = (name: string, geometryType: 'Point' | 'LineString' | 'Polygon', type: 'A' | 'B' | 'C') => {
+  const handleStartDrawing = (name: string, geometryType: 'Point' | 'LineString' | 'Polygon', type: 'A' | 'B' | 'C', image?: File) => {
     setShapeName(name);
     setDrawType(geometryType);
     setShapeType(type);
+    setImageFile(image);
     setDrawnGeometry(null);
   };
   
@@ -82,12 +84,14 @@ function App() {
         name: shapeName,
         geometry: geoJsonGeom as ShapeGeometry,
         type: shapeType,
+        image: imageFile,
       };
 
       try {
         await addShape(newShape);
         setDrawnGeometry(null);
         setShapeName('');
+        setImageFile(undefined);
         setRefreshShapes(prev => !prev);
       } catch (error) {
         console.error('Failed to save shape:', error);

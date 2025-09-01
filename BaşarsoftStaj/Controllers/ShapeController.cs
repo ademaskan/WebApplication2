@@ -3,6 +3,7 @@ using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Models;
 using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
 
 namespace BaşarsoftStaj.Controllers
 {
@@ -11,10 +12,12 @@ namespace BaşarsoftStaj.Controllers
     public class ShapeController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ShapeController(IUnitOfWork unitOfWork)
+        public ShapeController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet("GetAll")]
@@ -169,15 +172,18 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<ApiResponse<Shape>> Add([FromBody] AddPointDto pointDto)
+        public async Task<ApiResponse<Shape>> Add([FromForm] AddPointDto pointDto, IFormFile? image)
         {
             try
             {
-                if (pointDto.Geometry.OgcGeometryType == OgcGeometryType.LineString)
+                var reader = new GeoJsonReader();
+                var geometry = reader.Read<Geometry>(pointDto.Geometry);
+
+                if (geometry.OgcGeometryType == OgcGeometryType.LineString)
                 {
                     if (pointDto.Type == "A")
                     {
-                        var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(pointDto.Geometry, new[] { "B" });
+                        var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(geometry, new[] { "B" });
                         if (intersectsWithPoints)
                         {
                             return new ApiResponse<Shape>
@@ -188,11 +194,11 @@ namespace BaşarsoftStaj.Controllers
                         }
                     }
                 }
-                else if (pointDto.Geometry.OgcGeometryType == OgcGeometryType.Point)
+                else if (geometry.OgcGeometryType == OgcGeometryType.Point)
                 {
                     if (pointDto.Type == "B")
                     {
-                        var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(pointDto.Geometry, new[] { "A" });
+                        var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(geometry, new[] { "A" });
                         if (intersectsWithLineStrings)
                         {
                             return new ApiResponse<Shape>
@@ -204,11 +210,29 @@ namespace BaşarsoftStaj.Controllers
                     }
                 }
                 
+                string? imagePath = null;
+                if (image != null && image.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Uploads", "Images");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    await using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await image.CopyToAsync(stream);
+                    }
+                    imagePath = Path.Combine("Uploads", "Images", uniqueFileName);
+                }
+
                 var point = new Shape
                 {
                     Name = pointDto.Name,
-                    Geometry = pointDto.Geometry,
-                    Type = pointDto.Type
+                    Geometry = geometry,
+                    Type = pointDto.Type,
+                    ImagePath = imagePath
                 };
 
                 await _unitOfWork.Points.AddAsync(point);
@@ -236,14 +260,16 @@ namespace BaşarsoftStaj.Controllers
             try
             {
                 var points = new List<Shape>();
+                var reader = new GeoJsonReader();
 
                 foreach (var dto in pointDtos)
                 {
-                    if (dto.Geometry.OgcGeometryType == OgcGeometryType.LineString)
+                    var geometry = reader.Read<Geometry>(dto.Geometry);
+                    if (geometry.OgcGeometryType == OgcGeometryType.LineString)
                     {
                         if (dto.Type == "A")
                         {
-                            var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(dto.Geometry, new[] { "B" });
+                            var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(geometry, new[] { "B" });
                             if (intersectsWithPoints)
                             {
                                 return new ApiResponse<List<Shape>>
@@ -254,11 +280,11 @@ namespace BaşarsoftStaj.Controllers
                             }
                         }
                     }
-                    else if (dto.Geometry.OgcGeometryType == OgcGeometryType.Point)
+                    else if (geometry.OgcGeometryType == OgcGeometryType.Point)
                     {
                         if (dto.Type == "B")
                         {
-                            var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(dto.Geometry, new[] { "A" });
+                            var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(geometry, new[] { "A" });
                             if (intersectsWithLineStrings)
                             {
                                 return new ApiResponse<List<Shape>>
@@ -273,7 +299,7 @@ namespace BaşarsoftStaj.Controllers
                     var point = new Shape
                     {
                         Name = dto.Name,
-                        Geometry = dto.Geometry,
+                        Geometry = geometry,
                         Type = dto.Type
                     };
 
