@@ -187,28 +187,6 @@ function App() {
 
   return (
     <div className="App">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', backgroundColor: '#f8f9fa' }}>
-        <img src={logo} alt="Başarsoft Logo" style={{ height: '40px', marginRight: '15px' }} />
-        <h1 style={{ color: '#0056b3', margin: 0 }}>Başarsoft WKT Map</h1>
-      </div>
-      <Navbar 
-        onAddShapeClick={() => setIsAddModalOpen(true)} 
-        onSaveClick={handleSave} 
-        isSaveDisabled={!drawnGeometry}
-        onDeleteAllClick={() => handleDeleteRequest('all')}
-        onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
-        onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
-        onResetViewClick={handleResetView}
-        onCreateTestDataClick={handleCreateTestData}
-        onToggleMergeMode={toggleMergeMode}
-        isMergeMode={isMergeMode}
-        visibleTypes={visibleTypes}
-        onFilterChange={handleFilterChange}
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        filteredShapes={filteredShapes}
-        onJumpToShape={handleJumpToShape}
-      />
       <AddShapeModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -233,6 +211,24 @@ function App() {
         message={errorMessage}
       />
       <div className="map-container">
+        <Navbar 
+          onAddShapeClick={() => setIsAddModalOpen(true)} 
+          onSaveClick={handleSave} 
+          isSaveDisabled={!drawnGeometry}
+          onDeleteAllClick={() => handleDeleteRequest('all')}
+          onDeleteShapeClick={() => setIsDeleteModalOpen(true)}
+          onToggleShapeList={() => setIsShapeListOpen(!isShapeListOpen)}
+          onResetViewClick={handleResetView}
+          onCreateTestDataClick={handleCreateTestData}
+          onToggleMergeMode={toggleMergeMode}
+          isMergeMode={isMergeMode}
+          visibleTypes={visibleTypes}
+          onFilterChange={handleFilterChange}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          filteredShapes={filteredShapes}
+          onJumpToShape={handleJumpToShape}
+        />
         <MapComponent 
           shapes={filteredShapes}
           drawType={drawType} 

@@ -409,6 +409,22 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
             )}
             <Popup content={popupContent} position={popupPosition} />
             <InfoPopup shape={selectedShape} containedShapes={containedShapes} onClose={handleCloseInfoPopup} position={infoPopupPosition} />
+            <div style={{
+                position: 'absolute',
+                bottom: '10px',
+                left: '10px',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                color: 'black',
+                padding: '2px 8px',
+                borderRadius: '3px',
+                zIndex: 1000,
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '12px',
+                fontWeight: 'normal',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+            }}>
+                Başarsoft WKT MAP
+            </div>
         </div>
     );
 };
