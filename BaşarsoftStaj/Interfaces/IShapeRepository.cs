@@ -9,5 +9,6 @@ namespace BaşarsoftStaj.Interfaces
         Task DeleteAllAsync();
         Task DeleteRangeAsync(IEnumerable<int> ids);
         Task<bool> HasIntersectingLineStringsAsync(Geometry geometry, string[] types);
+        Task<bool> HasIntersectingPointsAsync(Geometry geometry, string[] types);
     }
 }

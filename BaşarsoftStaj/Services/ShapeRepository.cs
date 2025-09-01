@@ -8,6 +8,7 @@ namespace BaşarsoftStaj.Services
 {
     public class ShapeRepository : Repository<Shape>, IShapeRepository
     {
+        private const double BufferDistance = 0.001; // ~11 meters
         public ShapeRepository(AppDbContext context) : base(context)
         {
         }
@@ -38,7 +39,14 @@ namespace BaşarsoftStaj.Services
         {
             return await _dbSet
                 .Where(s => s.Geometry.OgcGeometryType == OgcGeometryType.LineString && types.Contains(s.Type))
-                .AnyAsync(s => s.Geometry.Intersects(geometry));
+                .AnyAsync(s => s.Geometry.Intersects(geometry.Buffer(BufferDistance)));
+        }
+
+        public async Task<bool> HasIntersectingPointsAsync(Geometry geometry, string[] types)
+        {
+            return await _dbSet
+                .Where(s => s.Geometry.OgcGeometryType == OgcGeometryType.Point && types.Contains(s.Type))
+                .AnyAsync(s => s.Geometry.Buffer(BufferDistance).Intersects(geometry));
         }
     }
 }
