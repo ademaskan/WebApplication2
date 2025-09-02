@@ -1,4 +1,6 @@
-import { Style, Icon, Stroke, Fill } from 'ol/style';
+import { Style, Icon, Stroke, Fill, Circle as CircleStyle } from 'ol/style';
+import MultiPoint from 'ol/geom/MultiPoint';
+import { type LineString, type Polygon } from 'ol/geom';
 import pinIconRed from '../assets/placeholder.png';
 import pinIconGreen from '../assets/placeholder-green.png';
 import pinIconBlue from '../assets/placeholder-blue.png';
@@ -40,16 +42,40 @@ export const polygonStyle = (type: string) => new Style({
     }),
 });
 
+export const vertexStyle = new Style({
+    image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({ color: 'orange' }),
+    }),
+    geometry: (feature) => {
+        const geom = feature.getGeometry();
+        if (!geom) return;
+
+        const type = geom.getType();
+        if (type === 'Polygon') {
+            // Use the coordinates of the first ring of the polygon
+            const coordinates = (geom as Polygon).getCoordinates()[0];
+            return new MultiPoint(coordinates);
+        } else if (type === 'LineString') {
+            const coordinates = (geom as LineString).getCoordinates();
+            return new MultiPoint(coordinates);
+        }
+    },
+});
+
 export const styleFunction = (feature: any) => {
-    const geometryType = feature.getGeometry()?.getType();
+    const geometry = feature.getGeometry();
+    if (!geometry) return;
+
+    const geometryType = geometry.getType();
     const type = feature.get('type') || 'A';
     switch (geometryType) {
         case 'Point':
             return pointStyle(type);
         case 'LineString':
-            return lineStringStyle(type);
+            return [lineStringStyle(type), vertexStyle];
         case 'Polygon':
-            return polygonStyle(type);
+            return [polygonStyle(type), vertexStyle];
         default:
             return new Style({
                 stroke: new Stroke({
