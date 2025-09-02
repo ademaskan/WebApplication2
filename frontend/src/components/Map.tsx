@@ -8,8 +8,9 @@ import { fromLonLat } from 'ol/proj';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Geometry, Polygon as OLPolygon, SimpleGeometry } from 'ol/geom';
-import { Draw, Select } from 'ol/interaction';
+import { Draw, Select, Modify } from 'ol/interaction';
 import { getCenter } from 'ol/extent';
+import Collection from 'ol/Collection';
 
 import { GeometryFactory } from 'jsts/org/locationtech/jts/geom';
 import { GeoJSONReader, GeoJSONWriter } from 'jsts/org/locationtech/jts/io';
@@ -29,13 +30,21 @@ interface MapComponentProps {
     isMergeMode: boolean;
     onMerge: (name: string, geometry: ShapeGeometry, deleteIds: number[]) => void;
     clearLastDrawnFeature: boolean;
+    editingShape: Shape | null;
+    onShapeModified: (geometry: ShapeGeometry) => void;
+    onUpdateShape: (id: number, newName: string) => void;
+    setEditingShape: (shape: Shape | null) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, isMergeMode, onMerge, clearLastDrawnFeature }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ 
+    shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, isMergeMode, onMerge, 
+    clearLastDrawnFeature, editingShape, onShapeModified, onUpdateShape, setEditingShape 
+}) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
     const selectInteractionRef = useRef<Select | null>(null);
+    const modifyInteractionRef = useRef<Modify | null>(null);
     const vectorSourceRef = useRef<VectorSource>(new VectorSource());
     const lastDrawnFeatureRef = useRef<Feature | null>(null);
     const [popupContent, setPopupContent] = useState('');
@@ -95,6 +104,46 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
         }
     };
     
+    useEffect(() => {
+        if (mapRef.current && editingShape) {
+            if (modifyInteractionRef.current) {
+                mapRef.current.removeInteraction(modifyInteractionRef.current);
+            }
+
+            const featureToModify = vectorSourceRef.current.getFeatures().find(f => f.get('name') === editingShape.name);
+            
+            if (featureToModify) {
+                const modify = new Modify({
+                    features: new Collection([featureToModify]),
+                });
+                mapRef.current.addInteraction(modify);
+                modifyInteractionRef.current = modify;
+
+                modify.on('modifyend', (event) => {
+                    const modifiedFeature = event.features.getArray()[0];
+                    const modifiedGeometry = modifiedFeature.getGeometry();
+                    if (modifiedGeometry) {
+                        const geoJsonFormat = new GeoJSON({
+                            featureProjection: 'EPSG:3857',
+                            dataProjection: 'EPSG:4326'
+                        });
+                        const geoJsonGeom = geoJsonFormat.writeGeometryObject(modifiedGeometry);
+                        onShapeModified(geoJsonGeom as ShapeGeometry);
+                    }
+                });
+            }
+        } else if (mapRef.current && !editingShape && modifyInteractionRef.current) {
+            mapRef.current.removeInteraction(modifyInteractionRef.current);
+            modifyInteractionRef.current = null;
+        }
+
+        return () => {
+            if (mapRef.current && modifyInteractionRef.current) {
+                mapRef.current.removeInteraction(modifyInteractionRef.current);
+            }
+        };
+    }, [editingShape, onShapeModified]);
+
     useEffect(() => {
         if (mapElement.current && !mapRef.current) {
             const vectorSource = vectorSourceRef.current;
@@ -291,6 +340,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
     const handleCloseInfoPopup = () => {
         setSelectedShape(null);
         setInfoPopupPosition(null);
+        setEditingShape(null);
     };
 
     useEffect(() => {
@@ -408,7 +458,20 @@ const MapComponent: React.FC<MapComponentProps> = ({ shapes, drawType, onDrawEnd
                 </button>
             )}
             <Popup content={popupContent} position={popupPosition} />
-            <InfoPopup shape={selectedShape} containedShapes={containedShapes} onClose={handleCloseInfoPopup} position={infoPopupPosition} />
+            <InfoPopup 
+                shape={selectedShape} 
+                containedShapes={containedShapes} 
+                onClose={handleCloseInfoPopup} 
+                position={infoPopupPosition}
+                onUpdate={onUpdateShape}
+                onEditModeChange={(isEditing) => {
+                    if (isEditing) {
+                        setEditingShape(selectedShape);
+                    } else {
+                        setEditingShape(null);
+                    }
+                }}
+            />
             <div style={{
                 position: 'absolute',
                 bottom: '10px',

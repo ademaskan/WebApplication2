@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Popup.css';
 import { type Shape } from '../services/shapeService';
 import placeholderImage from '../assets/placeholder.png';
@@ -8,13 +8,42 @@ interface InfoPopupProps {
     shape: Shape | null;
     containedShapes: Shape[];
     onClose: () => void;
+    onUpdate: (id: number, newName: string) => void;
+    onEditModeChange: (isEditing: boolean) => void;
     position: { x: number; y: number } | null;
 }
 
-const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, position }) => {
+const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, onUpdate, onEditModeChange, position }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [newName, setNewName] = useState('');
+
+    useEffect(() => {
+        if (shape) {
+            setNewName(shape.name);
+        }
+    }, [shape]);
+
+    useEffect(() => {
+        onEditModeChange(isEditing);
+    }, [isEditing, onEditModeChange]);
+
     if (!shape || !position) {
         return null;
     }
+
+    const handleUpdateClick = () => {
+        setIsEditing(true);
+    };
+
+    const handleCancelClick = () => {
+        setIsEditing(false);
+        setNewName(shape.name);
+    };
+
+    const handleSaveClick = () => {
+        onUpdate(shape.id, newName);
+        setIsEditing(false);
+    };
 
     const style: React.CSSProperties = {
         position: 'absolute',
@@ -41,7 +70,7 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, 
                     />
                 )}
                 <p><strong>ID:</strong> {shape.id}</p>
-                <p><strong>Name:</strong> {shape.name}</p>
+                <p><strong>Name:</strong> {isEditing ? <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} /> : shape.name}</p>
                 <p><strong>Type:</strong> {shape.type}</p>
                 <p><strong>WKT:</strong> <span className="wkt-text">{shape.wkt}</span></p>
                 {containedShapes.length > 0 && (
@@ -54,6 +83,16 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, 
                         </ul>
                     </div>
                 )}
+                <div className="info-popup-actions">
+                    {isEditing ? (
+                        <>
+                            <button onClick={handleSaveClick}>Save</button>
+                            <button onClick={handleCancelClick}>Cancel</button>
+                        </>
+                    ) : (
+                        <button onClick={handleUpdateClick}>Update</button>
+                    )}
+                </div>
             </div>
         </div>
     );

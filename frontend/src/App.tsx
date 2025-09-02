@@ -11,7 +11,7 @@ import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import {
-    getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes, createTestData,
+    getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes, createTestData, updateShape,
     type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
 
@@ -41,6 +41,8 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [clearLastDrawnFeature, setClearLastDrawnFeature] = useState(false);
+  const [editingShape, setEditingShape] = useState<Shape | null>(null);
+  const [modifiedGeometry, setModifiedGeometry] = useState<ShapeGeometry | null>(null);
   const [visibleTypes, setVisibleTypes] = useState<{ [key: string]: boolean }>({
     'Point': true,
     'LineString': true,
@@ -168,6 +170,27 @@ function App() {
     setPageNumber(1);
   };
 
+  const onUpdateShape = async (id: number, newName: string) => {
+    const originalShape = shapes.find(s => s.id === id);
+    if (!originalShape) return;
+
+    const updatePayload = {
+      newName: newName,
+      newGeometry: modifiedGeometry || undefined
+    };
+
+    try {
+      await updateShape(id, updatePayload);
+      setEditingShape(null);
+      setModifiedGeometry(null);
+      setRefreshShapes(prev => !prev);
+    } catch (error) {
+      console.error('Failed to update shape:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
+      setIsErrorModalOpen(true);
+    }
+  };
+
   const filteredShapes = useMemo(() => {
     const types = Object.keys(visibleTypes).filter(key => visibleTypes[key]);
     
@@ -276,6 +299,10 @@ function App() {
           isMergeMode={isMergeMode}
           onMerge={handleMergeShapes}
           clearLastDrawnFeature={clearLastDrawnFeature}
+          editingShape={editingShape}
+          onShapeModified={(geometry) => setModifiedGeometry(geometry)}
+          onUpdateShape={onUpdateShape}
+          setEditingShape={setEditingShape}
         />
         {isShapeListOpen && <ShapeList shapes={filteredShapes} onJumpToShape={handleJumpToShape} onClose={() => setIsShapeListOpen(false)} />}
       </div>

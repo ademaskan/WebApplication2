@@ -204,6 +204,38 @@
         }
     }
 
+    export interface UpdateShape {
+        newName: string;
+        newGeometry?: Geometry;
+    }
+
+    export const updateShape = async (id: number, shape: UpdateShape): Promise<Shape> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/UpdateById/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(shape),
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const apiResponse: ApiResponse<Shape> = await response.json();
+    
+            if (apiResponse.success && apiResponse.data) {
+                return apiResponse.data;
+            } else {
+                throw new Error(apiResponse.message || 'Failed to update shape');
+            }
+        } catch (error) {
+            console.error('Error updating shape:', error);
+            throw error;
+        }
+    };
+
     export const createTestData = async (count: number): Promise<void> => {
         try {
             const response = await fetch(`${API_BASE_URL}/Shape/CreateTestData/${count}`, {
