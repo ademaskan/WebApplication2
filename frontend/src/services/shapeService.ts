@@ -46,9 +46,16 @@
     
     const API_BASE_URL = 'http://localhost:5294/api';
     
-    export const getShapes = async (pageNumber: number, pageSize: number): Promise<PagedResult<Shape>> => {
+    export const getShapes = async (pageNumber: number, pageSize: number, searchTerm?: string): Promise<PagedResult<Shape>> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/Shape/GetAll?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+            const params = new URLSearchParams({
+                pageNumber: pageNumber.toString(),
+                pageSize: pageSize.toString(),
+            });
+            if (searchTerm) {
+                params.append('searchTerm', searchTerm);
+            }
+            const response = await fetch(`${API_BASE_URL}/Shape/GetAll?${params.toString()}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }

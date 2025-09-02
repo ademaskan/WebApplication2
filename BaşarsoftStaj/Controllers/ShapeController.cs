@@ -22,11 +22,11 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<ApiResponse<PagedResult<Shape>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ApiResponse<PagedResult<Shape>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchTerm = null)
         {
             try
             {
-                var points = await _unitOfWork.Points.GetAllAsync(pageNumber, pageSize);
+                var points = await _unitOfWork.Points.GetAllAsync(pageNumber, pageSize, searchTerm);
                 return new ApiResponse<PagedResult<Shape>>
                 {
                     Success = true,

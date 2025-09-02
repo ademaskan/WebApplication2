@@ -3,6 +3,7 @@ using BaşarsoftStaj.Data;
 using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
 using NetTopologySuite.Geometries;
+using BaşarsoftStaj.Models;
 
 namespace BaşarsoftStaj.Services
 {
@@ -11,6 +12,29 @@ namespace BaşarsoftStaj.Services
         private const double BufferDistance = 0.001; // ~11 meters
         public ShapeRepository(AppDbContext context) : base(context)
         {
+        }
+
+        public new async Task<PagedResult<Shape>> GetAllAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        {
+            var query = _dbSet.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(s => s.Name.ToLower().Contains(searchTerm.ToLower()));
+            }
+
+            var count = await query.CountAsync();
+
+            if (pageSize > 0)
+            {
+                var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+                return new PagedResult<Shape>(items, count, pageNumber, pageSize);
+            }
+            else
+            {
+                var items = await query.ToListAsync();
+                return new PagedResult<Shape>(items, count, 1, count > 0 ? count : 1);
+            }
         }
 
         public async Task<IEnumerable<Shape>> GetPointsByNameAsync(string name)

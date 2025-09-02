@@ -50,7 +50,7 @@ function App() {
   useEffect(() => {
     const fetchShapes = async () => {
       try {
-        const result: PagedResult<Shape> = await getShapes(pageNumber, pageSize);
+        const result: PagedResult<Shape> = await getShapes(pageNumber, pageSize, searchTerm);
         setShapes(result.items);
         setTotalCount(result.totalCount);
         setTotalPages(result.totalPages);
@@ -60,7 +60,7 @@ function App() {
     };
 
     fetchShapes();
-  }, [refreshShapes, pageNumber, pageSize]);
+  }, [refreshShapes, pageNumber, pageSize, searchTerm]);
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
@@ -165,16 +165,16 @@ function App() {
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
+    setPageNumber(1);
   };
 
   const filteredShapes = useMemo(() => {
     const types = Object.keys(visibleTypes).filter(key => visibleTypes[key]);
     
     return (shapes || [])
-      .filter(shape => shape && shape.geometry && types.includes(shape.geometry.type))
-      .filter(shape => shape && shape.name && shape.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      .filter(shape => shape && shape.geometry && types.includes(shape.geometry.type));
       
-  }, [shapes, visibleTypes, searchTerm]);
+  }, [shapes, visibleTypes]);
 
   const handleGenerateTestData = async (count: number) => {
     try {
