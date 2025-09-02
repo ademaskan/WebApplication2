@@ -30,8 +30,17 @@ namespace BaşarsoftStaj.Services
         public virtual async Task<PagedResult<T>> GetAllAsync(int pageNumber, int pageSize)
         {
             var count = await _dbSet.CountAsync();
-            var items = await _dbSet.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            return new PagedResult<T>(items, count, pageNumber, pageSize);
+            
+            if (pageSize > 0)
+            {
+                var items = await _dbSet.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+                return new PagedResult<T>(items, count, pageNumber, pageSize);
+            }
+            else
+            {
+                var items = await _dbSet.ToListAsync();
+                return new PagedResult<T>(items, count, 1, count > 0 ? count : 1);
+            }
         }
 
         public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)

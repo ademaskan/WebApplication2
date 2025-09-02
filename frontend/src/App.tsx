@@ -14,17 +14,7 @@ import {
     getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes, createTestData,
     type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
-import logo from './assets/lk-amblem-1.png';
 
-const createTestDataStatic = (): AddShape[] => {
-  return [
-    { name: 'Ankara', geometry: { type: 'Point', coordinates: [32.85, 39.93] }, type: 'A' },
-    { name: 'Istanbul', geometry: { type: 'Point', coordinates: [28.97, 41.00] }, type: 'B' },
-    { name: 'İzmir-Manisa Highway', geometry: { type: 'LineString', coordinates: [[27.14, 38.42], [27.43, 38.62]] }, type: 'C' },
-    { name: 'Antalya Coastline', geometry: { type: 'LineString', coordinates: [[30.71, 36.89], [30.9, 36.88]] }, type: 'A' },
-    { name: 'Göreme National Park', geometry: { type: 'Polygon', coordinates: [[[34.82, 38.64], [34.85, 38.64], [34.85, 38.66], [34.82, 38.66], [34.82, 38.64]]] }, type: 'B' },
-  ];
-};
 
 function App() {
   const [shapes, setShapes] = useState<Shape[]>([]);
@@ -71,6 +61,11 @@ function App() {
 
     fetchShapes();
   }, [refreshShapes, pageNumber, pageSize]);
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setPageNumber(1);
+  };
 
   const handleStartDrawing = (name: string, geometryType: 'Point' | 'LineString' | 'Polygon', type: 'A' | 'B' | 'C', image?: File) => {
     setShapeName(name);
@@ -219,13 +214,26 @@ function App() {
         onJumpToShape={handleJumpToShape}
       />
             <div className="pagination-controls">
-                <button onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))} disabled={pageNumber === 1}>
+                <button onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))} disabled={pageNumber === 1 || pageSize <= 0}>
                     Previous
                 </button>
                 <span>Page {pageNumber} of {totalPages}</span>
-                <button onClick={() => setPageNumber(prev => Math.min(prev + 1, totalPages))} disabled={pageNumber === totalPages}>
+                <button onClick={() => setPageNumber(prev => Math.min(prev + 1, totalPages))} disabled={pageNumber === totalPages || pageSize <= 0}>
                     Next
                 </button>
+                <select value={pageSize} onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="500">500</option>
+                    <option value="1000">1,000</option>
+                    <option value="10000">10,000</option>
+                    <option value="50000">50,000</option>
+                    <option value="100000">100,000</option>
+                    <option value="500000">500,000</option>
+                    <option value="-1">All</option>
+                </select>
             </div>
       <AddShapeModal
         isOpen={isAddModalOpen}
