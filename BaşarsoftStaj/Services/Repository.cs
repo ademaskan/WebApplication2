@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BaşarsoftStaj.Data;
 using BaşarsoftStaj.Interfaces;
 using System.Linq.Expressions;
+using BaşarsoftStaj.Models;
 
 namespace BaşarsoftStaj.Services
 {
@@ -26,6 +27,13 @@ namespace BaşarsoftStaj.Services
             return await _dbSet.ToListAsync();
         }
         
+        public virtual async Task<PagedResult<T>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            var count = await _dbSet.CountAsync();
+            var items = await _dbSet.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new PagedResult<T>(items, count, pageNumber, pageSize);
+        }
+
         public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();

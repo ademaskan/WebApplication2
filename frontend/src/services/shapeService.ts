@@ -28,23 +28,31 @@
         deleteIds: number[];
         type: string;
     }
-    
-    // This is based on the ApiResponse<T> from your backend
+
+    export interface PagedResult<T> {
+        items: T[];
+        totalCount: number;
+        pageNumber: number;
+        pageSize: number;
+        totalPages: number;
+    }
+
+
     export interface ApiResponse<T> {
         success: boolean;
         data?: T;
         message?: string;
     }
     
-    const API_BASE_URL = 'http://localhost:5294/api'; // Use your backend's URL
+    const API_BASE_URL = 'http://localhost:5294/api';
     
-    export const getShapes = async (): Promise<Shape[]> => {
+    export const getShapes = async (pageNumber: number, pageSize: number): Promise<PagedResult<Shape>> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/Shape/GetAll`);
+            const response = await fetch(`${API_BASE_URL}/Shape/GetAll?pageNumber=${pageNumber}&pageSize=${pageSize}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            const apiResponse: ApiResponse<Shape[]> = await response.json();
+            const apiResponse: ApiResponse<PagedResult<Shape>> = await response.json();
             if (apiResponse.success && apiResponse.data) {
                 return apiResponse.data;
             } else {
@@ -132,12 +140,17 @@
 
     export const addShapes = async (shapes: AddShape[]): Promise<Shape[]> => {
         try {
+            const shapesWithSerializedGeometry = shapes.map(shape => ({
+                ...shape,
+                geometry: JSON.stringify(shape.geometry)
+            }));
+
             const response = await fetch(`${API_BASE_URL}/Shape/AddRange`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(shapes),
+                body: JSON.stringify(shapesWithSerializedGeometry),
             });
     
             const apiResponse: ApiResponse<Shape[]> = await response.json();

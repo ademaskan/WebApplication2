@@ -21,20 +21,20 @@ namespace BaşarsoftStaj.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<ApiResponse<List<Shape>>> GetAll()
+        public async Task<ApiResponse<PagedResult<Shape>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var points = await _unitOfWork.Points.GetAllAsync();
-                return new ApiResponse<List<Shape>>
+                var points = await _unitOfWork.Points.GetAllAsync(pageNumber, pageSize);
+                return new ApiResponse<PagedResult<Shape>>
                 {
                     Success = true,
-                    Data = points.ToList()
+                    Data = points
                 };
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<Shape>>
+                return new ApiResponse<PagedResult<Shape>>
                 {
                     Success = false,
                     Message = ex.Message

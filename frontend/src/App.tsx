@@ -11,7 +11,7 @@ import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import {
     getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes,
-    type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest
+    type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
 import logo from './assets/lk-amblem-1.png';
 
@@ -27,6 +27,10 @@ const createTestData = (): AddShape[] => {
 
 function App() {
   const [shapes, setShapes] = useState<Shape[]>([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -54,15 +58,17 @@ function App() {
   useEffect(() => {
     const fetchShapes = async () => {
       try {
-        const shapesData = await getShapes();
-        setShapes(shapesData);
+        const result: PagedResult<Shape> = await getShapes(pageNumber, pageSize);
+        setShapes(result.items);
+        setTotalCount(result.totalCount);
+        setTotalPages(result.totalPages);
       } catch (error) {
         console.error('Failed to fetch shapes:', error);
       }
     };
 
     fetchShapes();
-  }, [refreshShapes]);
+  }, [refreshShapes, pageNumber, pageSize]);
 
   const handleStartDrawing = (name: string, geometryType: 'Point' | 'LineString' | 'Polygon', type: 'A' | 'B' | 'C', image?: File) => {
     setShapeName(name);
@@ -167,9 +173,9 @@ function App() {
   const filteredShapes = useMemo(() => {
     const types = Object.keys(visibleTypes).filter(key => visibleTypes[key]);
     
-    return shapes
-      .filter(shape => types.includes(shape.geometry.type))
-      .filter(shape => shape.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    return (shapes || [])
+      .filter(shape => shape && shape.geometry && types.includes(shape.geometry.type))
+      .filter(shape => shape && shape.name && shape.name.toLowerCase().includes(searchTerm.toLowerCase()));
       
   }, [shapes, visibleTypes, searchTerm]);
 
@@ -206,6 +212,15 @@ function App() {
         filteredShapes={filteredShapes}
         onJumpToShape={handleJumpToShape}
       />
+            <div className="pagination-controls">
+                <button onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))} disabled={pageNumber === 1}>
+                    Previous
+                </button>
+                <span>Page {pageNumber} of {totalPages}</span>
+                <button onClick={() => setPageNumber(prev => Math.min(prev + 1, totalPages))} disabled={pageNumber === totalPages}>
+                    Next
+                </button>
+            </div>
       <AddShapeModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

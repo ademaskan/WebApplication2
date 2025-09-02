@@ -1,4 +1,7 @@
 using System.Linq.Expressions;
+using BaşarsoftStaj.Entity;
+using System.Linq.Expressions;
+using BaşarsoftStaj.Models;
 
 namespace BaşarsoftStaj.Interfaces
 {
@@ -6,6 +9,8 @@ namespace BaşarsoftStaj.Interfaces
     {
         Task<T?> GetByIdAsync(int id);
         Task<IEnumerable<T>> GetAllAsync();
+        Task<PagedResult<T>> GetAllAsync(int pageNumber, int pageSize);
+
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
         Task<T> AddAsync(T entity);
         Task<T> UpdateAsync(T entity);
