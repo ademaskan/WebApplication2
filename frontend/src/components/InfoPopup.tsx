@@ -9,11 +9,12 @@ interface InfoPopupProps {
     containedShapes: Shape[];
     onClose: () => void;
     onUpdate: (id: number, newName: string) => void;
+    onDelete: (id: number) => void;
     onEditModeChange: (isEditing: boolean) => void;
     position: { x: number; y: number } | null;
 }
 
-const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, onUpdate, onEditModeChange, position }) => {
+const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, onUpdate, onDelete, onEditModeChange, position }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState('');
 
@@ -90,7 +91,10 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, 
                             <button onClick={handleCancelClick}>Cancel</button>
                         </>
                     ) : (
-                        <button onClick={handleUpdateClick}>Update</button>
+                        <>
+                            <button onClick={handleUpdateClick}>Update</button>
+                            <button onClick={() => onDelete(shape.id)}>Delete</button>
+                        </>
                     )}
                 </div>
             </div>

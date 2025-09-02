@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -33,12 +33,13 @@ interface MapComponentProps {
     editingShape: Shape | null;
     onShapeModified: (geometry: ShapeGeometry) => void;
     onUpdateShape: (id: number, newName: string) => void;
+    onDeleteShape: (id: number) => void;
     setEditingShape: (shape: Shape | null) => void;
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({ 
     shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, isMergeMode, onMerge, 
-    clearLastDrawnFeature, editingShape, onShapeModified, onUpdateShape, setEditingShape 
+    clearLastDrawnFeature, editingShape, onShapeModified, onUpdateShape, onDeleteShape, setEditingShape 
 }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
@@ -53,6 +54,19 @@ const MapComponent: React.FC<MapComponentProps> = ({
     const [containedShapes, setContainedShapes] = useState<Shape[]>([]);
     const [infoPopupPosition, setInfoPopupPosition] = useState<{ x: number, y: number } | null>(null);
     const [selectedFeaturesForMerge, setSelectedFeaturesForMerge] = useState<Feature[]>([]);
+
+    const handleCloseInfoPopup = useCallback(() => {
+        setSelectedShape(null);
+        setInfoPopupPosition(null);
+        setEditingShape(null);
+    }, [setEditingShape]);
+
+    useEffect(() => {
+        // If a shape is selected but it's no longer in the main shapes list (e.g., deleted), close the popup.
+        if (selectedShape && !shapes.some(shape => shape.id === selectedShape.id)) {
+            handleCloseInfoPopup();
+        }
+    }, [shapes, selectedShape, handleCloseInfoPopup]);
 
     const handleMerge = () => {
         console.log("Merge button clicked");
@@ -337,12 +351,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
         };
     }, []);
 
-    const handleCloseInfoPopup = () => {
-        setSelectedShape(null);
-        setInfoPopupPosition(null);
-        setEditingShape(null);
-    };
-
     useEffect(() => {
         if (resetViewToggle && mapRef.current) {
             mapRef.current.getView().animate({
@@ -464,6 +472,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 onClose={handleCloseInfoPopup} 
                 position={infoPopupPosition}
                 onUpdate={onUpdateShape}
+                onDelete={onDeleteShape}
                 onEditModeChange={(isEditing) => {
                     if (isEditing) {
                         setEditingShape(selectedShape);

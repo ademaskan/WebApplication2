@@ -302,6 +302,7 @@ function App() {
           editingShape={editingShape}
           onShapeModified={(geometry) => setModifiedGeometry(geometry)}
           onUpdateShape={onUpdateShape}
+          onDeleteShape={handleDeleteRequest}
           setEditingShape={setEditingShape}
         />
         {isShapeListOpen && <ShapeList shapes={filteredShapes} onJumpToShape={handleJumpToShape} onClose={() => setIsShapeListOpen(false)} />}
