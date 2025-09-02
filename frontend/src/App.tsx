@@ -6,16 +6,17 @@ import AddShapeModal from './components/AddShapeModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import DeleteShapeModal from './components/DeleteShapeModal';
 import ErrorModal from './components/ErrorModal';
+import CreateTestDataModal from './components/CreateTestDataModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import {
-    getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes,
+    getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes, createTestData,
     type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
 import logo from './assets/lk-amblem-1.png';
 
-const createTestData = (): AddShape[] => {
+const createTestDataStatic = (): AddShape[] => {
   return [
     { name: 'Ankara', geometry: { type: 'Point', coordinates: [32.85, 39.93] }, type: 'A' },
     { name: 'Istanbul', geometry: { type: 'Point', coordinates: [28.97, 41.00] }, type: 'B' },
@@ -34,6 +35,7 @@ function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isCreateTestDataModalOpen, setIsCreateTestDataModalOpen] = useState(false);
   const [isShapeListOpen, setIsShapeListOpen] = useState(false);
   const [shapeName, setShapeName] = useState('');
   const [shapeType, setShapeType] = useState<'A' | 'B' | 'C'>('A');
@@ -179,16 +181,20 @@ function App() {
       
   }, [shapes, visibleTypes, searchTerm]);
 
-  const handleCreateTestData = async () => {
+  const handleGenerateTestData = async (count: number) => {
     try {
-      const testData = createTestData();
-      await addShapes(testData);
+      await createTestData(count);
       setRefreshShapes(prev => !prev);
+      setIsCreateTestDataModalOpen(false);
     } catch (error) {
       console.error('Failed to create test data:', error);
       setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
       setIsErrorModalOpen(true);
     }
+  };
+
+  const handleCreateTestData = () => {
+    setIsCreateTestDataModalOpen(true);
   };
 
   return (
@@ -225,6 +231,11 @@ function App() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onStartDrawing={handleStartDrawing}
+      />
+      <CreateTestDataModal
+        isOpen={isCreateTestDataModalOpen}
+        onClose={() => setIsCreateTestDataModalOpen(false)}
+        onGenerate={handleGenerateTestData}
       />
       <DeleteShapeModal
         isOpen={isDeleteModalOpen}

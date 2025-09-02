@@ -196,3 +196,24 @@
             throw error;
         }
     }
+
+    export const createTestData = async (count: number): Promise<void> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Shape/CreateTestData/${count}`, {
+                method: 'POST',
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const apiResponse: ApiResponse<object> = await response.json();
+    
+            if (!apiResponse.success) {
+                throw new Error(apiResponse.message || 'Failed to create test data');
+            }
+        } catch (error) {
+            console.error('Error creating test data:', error);
+            throw error;
+        }
+    };

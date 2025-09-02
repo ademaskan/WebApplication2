@@ -4,6 +4,7 @@ using BaşarsoftStaj.Models;
 using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using Bogus;
 
 namespace BaşarsoftStaj.Controllers
 {
@@ -360,6 +361,76 @@ namespace BaşarsoftStaj.Controllers
             catch (Exception ex)
             {
                 return new ApiResponse<Shape>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        [HttpPost("CreateTestData/{count}")]
+        public async Task<ApiResponse<object>> CreateTestData(int count)
+        {
+            if (count <= 0)
+            {
+                return new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Count must be a positive number."
+                };
+            }
+
+            try
+            {
+                var geometryFactory = new GeometryFactory();
+
+                var shapeFaker = new Faker<Shape>()
+                    .RuleFor(s => s.Name, f => f.Address.City())
+                    .RuleFor(s => s.Type, f => f.PickRandom(new[] { "A", "B", "C" }))
+                    .RuleFor(s => s.Geometry, f =>
+                    {
+                        var geometryType = f.PickRandom(new[] { "Point", "LineString", "Polygon" });
+                        switch (geometryType)
+                        {
+                            case "Point":
+                                return geometryFactory.CreatePoint(new Coordinate(f.Address.Longitude(), f.Address.Latitude()));
+                            case "LineString":
+                                var coords = new Coordinate[f.Random.Int(2, 5)];
+                                for (int i = 0; i < coords.Length; i++)
+                                {
+                                    coords[i] = new Coordinate(f.Address.Longitude(), f.Address.Latitude());
+                                }
+                                return geometryFactory.CreateLineString(coords);
+                            case "Polygon":
+                                var shellCoords = new Coordinate[4];
+                                shellCoords[0] = new Coordinate(f.Address.Longitude(), f.Address.Latitude());
+                                shellCoords[1] = new Coordinate(shellCoords[0].X + f.Random.Double(0.01, 0.1), shellCoords[0].Y);
+                                shellCoords[2] = new Coordinate(shellCoords[1].X, shellCoords[0].Y + f.Random.Double(0.01, 0.1));
+                                shellCoords[3] = new Coordinate(shellCoords[0].X, shellCoords[0].Y);
+                                return geometryFactory.CreatePolygon(new LinearRing(shellCoords));
+                            default:
+                                return geometryFactory.CreatePoint(new Coordinate(f.Address.Longitude(), f.Address.Latitude()));
+                        }
+                    });
+
+                var shapes = shapeFaker.Generate(count);
+
+                foreach (var shape in shapes)
+                {
+                    await _unitOfWork.Points.AddAsync(shape);
+                }
+                
+                await _unitOfWork.SaveAsync();
+
+                return new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"{count} test shapes created successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<object>
                 {
                     Success = false,
                     Message = ex.Message
