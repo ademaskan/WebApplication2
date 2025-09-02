@@ -29,7 +29,7 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [isExpanded, setIsExpanded] = useState(true);
-    const [position, setPosition] = useState({ x: 20, y: 20 });
+    const [position, setPosition] = useState({ x: 20, y: 45 });
     const [isDragging, setIsDragging] = useState(false);
     const dragInfo = useRef({
         startX: 0,

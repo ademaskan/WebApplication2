@@ -62,7 +62,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }, [setEditingShape]);
 
     useEffect(() => {
-        // If a shape is selected but it's no longer in the main shapes list (e.g., deleted), close the popup.
+        // silinen objenin popup'ını kapat
         if (selectedShape && !shapes.some(shape => shape.id === selectedShape.id)) {
             handleCloseInfoPopup();
         }
@@ -298,7 +298,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                 const pixel = map.getPixelFromCoordinate(center);
                                 setSelectedShape(shape);
                                 if (pixel) {
-                                    setInfoPopupPosition({ x: pixel[0], y: pixel[1] });
+                                    const yOffset = geom.getType() === 'Point' ? 40 : 0;
+                                    setInfoPopupPosition({ x: pixel[0], y: pixel[1] - yOffset });
                                 }
                             }
                         });
