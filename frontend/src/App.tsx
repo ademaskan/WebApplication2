@@ -179,6 +179,7 @@ function App() {
   const handleSearchChange = (term: string) => {
     setInputValue(term);
     debouncedSearch(term);
+    setShapes([]); //arama yapıldığında şekilleri temizle. bug fix için
   };
 
   const onUpdateShape = async (id: number, newName: string) => {
