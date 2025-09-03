@@ -5,7 +5,6 @@ import Navbar from './components/Navbar';
 import AddShapeModal from './components/AddShapeModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import DeleteShapeModal from './components/DeleteShapeModal';
-import ErrorModal from './components/ErrorModal';
 import CreateTestDataModal from './components/CreateTestDataModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
@@ -15,6 +14,7 @@ import {
     type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
 import { debounce } from 'lodash';
+import { useNotifications } from './context/NotificationContext';
 
 
 function App() {
@@ -40,8 +40,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [isMergeMode, setIsMergeMode] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const { showNotification } = useNotifications();
   const [clearLastDrawnFeature, setClearLastDrawnFeature] = useState(false);
   const [editingShape, setEditingShape] = useState<Shape | null>(null);
   const [modifiedGeometry, setModifiedGeometry] = useState<ShapeGeometry | null>(null);
@@ -100,10 +99,10 @@ function App() {
         setShapeName('');
         setImageFile(undefined);
         setRefreshShapes(prev => !prev);
+        showNotification('Shape saved successfully!', 'success');
       } catch (error) {
         console.error('Failed to save shape:', error);
-        setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
-        setIsErrorModalOpen(true);
+        showNotification(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
         setDrawnGeometry(null);
         setClearLastDrawnFeature(prev => !prev);
       }
@@ -121,12 +120,15 @@ function App() {
     try {
       if (shapeToDelete === 'all') {
         await deleteAllShapes();
+        showNotification('All shapes deleted successfully!', 'success');
       } else {
         await deleteShapeById(shapeToDelete);
+        showNotification('Shape deleted successfully!', 'success');
       }
       setRefreshShapes(prev => !prev);
     } catch (error) {
       console.error('Failed to delete:', error);
+      showNotification(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
     }
     setShapeToDelete(null);
   };
@@ -153,9 +155,10 @@ function App() {
       console.log("Merge successful, refreshing shapes.");
       setRefreshShapes(prev => !prev);
       setIsMergeMode(false);
+      showNotification('Shapes merged successfully!', 'success');
     } catch (error) {
       console.error('Failed to merge shapes:', error);
-      alert('Failed to merge shapes. See console for details.');
+      showNotification(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
     }
   };
   
@@ -196,10 +199,10 @@ function App() {
       setEditingShape(null);
       setModifiedGeometry(null);
       setRefreshShapes(prev => !prev);
+      showNotification('Shape updated successfully!', 'success');
     } catch (error) {
       console.error('Failed to update shape:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
-      setIsErrorModalOpen(true);
+      showNotification(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
     }
   };
 
@@ -216,10 +219,10 @@ function App() {
       await createTestData(count);
       setRefreshShapes(prev => !prev);
       setIsCreateTestDataModalOpen(false);
+      showNotification('Test data created successfully!', 'success');
     } catch (error) {
       console.error('Failed to create test data:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
-      setIsErrorModalOpen(true);
+      showNotification(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
     }
   };
 
@@ -292,11 +295,6 @@ function App() {
         onConfirm={handleConfirmDelete}
         title="Confirm Deletion"
         message={`Are you sure you want to delete ${shapeToDelete === 'all' ? 'all shapes' : 'this shape'}? This action cannot be undone.`}
-      />
-      <ErrorModal
-        isOpen={isErrorModalOpen}
-        onClose={() => setIsErrorModalOpen(false)}
-        message={errorMessage}
       />
       <div className="map-container">
         <MapComponent 
