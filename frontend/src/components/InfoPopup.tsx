@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Popup.css';
 import { type Shape } from '../services/shapeService';
 import placeholderImage from '../assets/placeholder.png';
+import { useNotifications } from '../context/NotificationContext';
 
 
 interface InfoPopupProps {
@@ -17,6 +18,7 @@ interface InfoPopupProps {
 const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, onUpdate, onDelete, onEditModeChange, position }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState('');
+    const { showNotification } = useNotifications();
 
     useEffect(() => {
         if (shape) {
@@ -34,6 +36,7 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ shape, containedShapes, onClose, 
 
     const handleUpdateClick = () => {
         setIsEditing(true);
+        showNotification('Hold SHIFT to move the shape.', 'info');
     };
 
     const handleCancelClick = () => {

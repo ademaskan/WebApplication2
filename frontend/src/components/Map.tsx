@@ -8,9 +8,10 @@ import { fromLonLat } from 'ol/proj';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Geometry, Polygon as OLPolygon, SimpleGeometry } from 'ol/geom';
-import { Draw, Select, Modify } from 'ol/interaction';
+import { Draw, Select, Modify, Translate } from 'ol/interaction';
 import { getCenter } from 'ol/extent';
 import Collection from 'ol/Collection';
+import { shiftKeyOnly } from 'ol/events/condition';
 
 import { GeometryFactory } from 'jsts/org/locationtech/jts/geom';
 import { GeoJSONReader, GeoJSONWriter } from 'jsts/org/locationtech/jts/io';
@@ -35,18 +36,21 @@ interface MapComponentProps {
     onUpdateShape: (id: number, newName: string) => void;
     onDeleteShape: (id: number) => void;
     setEditingShape: (shape: Shape | null) => void;
+    onShapeMoved: (id: number, geometry: ShapeGeometry) => void;
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({ 
     shapes, drawType, onDrawEnd, focusGeometry, resetViewToggle, isMergeMode, onMerge, 
-    clearLastDrawnFeature, editingShape, onShapeModified, onUpdateShape, onDeleteShape, setEditingShape 
+    clearLastDrawnFeature, editingShape, onShapeModified, onUpdateShape, onDeleteShape, setEditingShape, onShapeMoved 
 }) => {
     const mapElement = useRef<HTMLDivElement>(null);
     const mapRef = useRef<Map | null>(null);
     const drawInteractionRef = useRef<Draw | null>(null);
     const selectInteractionRef = useRef<Select | null>(null);
     const modifyInteractionRef = useRef<Modify | null>(null);
+    const translateInteractionRef = useRef<Translate | null>(null);
     const vectorSourceRef = useRef<VectorSource>(new VectorSource());
+    const vectorLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
     const lastDrawnFeatureRef = useRef<Feature | null>(null);
     const [popupContent, setPopupContent] = useState('');
     const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
@@ -119,20 +123,29 @@ const MapComponent: React.FC<MapComponentProps> = ({
     };
     
     useEffect(() => {
-        if (mapRef.current && editingShape) {
-            if (modifyInteractionRef.current) {
-                mapRef.current.removeInteraction(modifyInteractionRef.current);
-            }
-
-            const featureToModify = vectorSourceRef.current.getFeatures().find(f => f.get('name') === editingShape.name);
-            
-            if (featureToModify) {
+        if (!mapRef.current) return;
+    
+        // clean up
+        if (modifyInteractionRef.current) {
+            mapRef.current.removeInteraction(modifyInteractionRef.current);
+            modifyInteractionRef.current = null;
+        }
+        if (translateInteractionRef.current) {
+            mapRef.current.removeInteraction(translateInteractionRef.current);
+            translateInteractionRef.current = null;
+        }
+    
+        if (editingShape) {
+            const featureToEdit = vectorSourceRef.current.getFeatures().find(f => f.get('name') === editingShape.name);
+    
+            if (featureToEdit) {
+                // update interaction
                 const modify = new Modify({
-                    features: new Collection([featureToModify]),
+                    features: new Collection([featureToEdit]),
                 });
                 mapRef.current.addInteraction(modify);
                 modifyInteractionRef.current = modify;
-
+    
                 modify.on('modifyend', (event) => {
                     const modifiedFeature = event.features.getArray()[0];
                     const modifiedGeometry = modifiedFeature.getGeometry();
@@ -145,18 +158,43 @@ const MapComponent: React.FC<MapComponentProps> = ({
                         onShapeModified(geoJsonGeom as ShapeGeometry);
                     }
                 });
+    
+                // drag and drop shift tuşu ile çalışıyor.
+                const translate = new Translate({
+                    features: new Collection([featureToEdit]),
+                    condition: shiftKeyOnly,
+                });
+                mapRef.current.addInteraction(translate);
+                translateInteractionRef.current = translate;
+    
+                translate.on('translateend', (event) => {
+                    const feature = event.features.getArray()[0];
+                    if (feature) {
+                        const geometry = feature.getGeometry();
+                        if (geometry) {
+                            const geoJsonFormat = new GeoJSON({
+                                featureProjection: 'EPSG:3857',
+                                dataProjection: 'EPSG:4326',
+                            });
+                            const geoJsonGeom = geoJsonFormat.writeGeometryObject(geometry);
+                            onShapeMoved(editingShape.id, geoJsonGeom as ShapeGeometry);
+                        }
+                    }
+                });
             }
-        } else if (mapRef.current && !editingShape && modifyInteractionRef.current) {
-            mapRef.current.removeInteraction(modifyInteractionRef.current);
-            modifyInteractionRef.current = null;
         }
-
+    
         return () => {
-            if (mapRef.current && modifyInteractionRef.current) {
-                mapRef.current.removeInteraction(modifyInteractionRef.current);
+            if (mapRef.current) {
+                if (modifyInteractionRef.current) {
+                    mapRef.current.removeInteraction(modifyInteractionRef.current);
+                }
+                if (translateInteractionRef.current) {
+                    mapRef.current.removeInteraction(translateInteractionRef.current);
+                }
             }
         };
-    }, [editingShape, onShapeModified]);
+    }, [editingShape, onShapeModified, onShapeMoved]);
 
     useEffect(() => {
         if (mapElement.current && !mapRef.current) {
@@ -166,6 +204,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 source: vectorSource,
                 style: styleFunction
             });
+            vectorLayerRef.current = vectorLayer;
 
             const map = new Map({
                 target: mapElement.current,

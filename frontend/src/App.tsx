@@ -10,7 +10,7 @@ import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import {
-    getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes, createTestData, updateShape,
+    getShapes, addShape, deleteAllShapes, deleteShapeById, mergeShapes, createTestData, updateShape,
     type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
 import { debounce } from 'lodash';
@@ -21,7 +21,6 @@ function App() {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -50,12 +49,25 @@ function App() {
     'Polygon': true,
   });
 
+  const handleShapeMoved = async (id: number, newGeometry: ShapeGeometry) => {
+    const shape = shapes.find(s => s.id === id);
+    if (!shape) return;
+
+    try {
+      await updateShape(id, { newName: shape.name, newGeometry });
+      setRefreshShapes(prev => !prev);
+      showNotification('Shape position updated successfully!', 'success');
+    } catch (error) {
+      console.error('Failed to update shape position:', error);
+      showNotification(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
+    }
+  };
+
   useEffect(() => {
     const fetchShapes = async () => {
       try {
         const result: PagedResult<Shape> = await getShapes(pageNumber, pageSize, searchTerm);
         setShapes(result.items);
-        setTotalCount(result.totalCount);
         setTotalPages(result.totalPages);
       } catch (error) {
         console.error('Failed to fetch shapes:', error);
@@ -314,6 +326,7 @@ function App() {
           onUpdateShape={onUpdateShape}
           onDeleteShape={handleDeleteRequest}
           setEditingShape={setEditingShape}
+          onShapeMoved={handleShapeMoved}
         />
         {isShapeListOpen && <ShapeList shapes={filteredShapes} onJumpToShape={handleJumpToShape} onClose={() => setIsShapeListOpen(false)} />}
       </div>
