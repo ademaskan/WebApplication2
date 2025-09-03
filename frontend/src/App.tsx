@@ -14,6 +14,7 @@ import {
     getShapes, addShape, addShapes, deleteAllShapes, deleteShapeById, mergeShapes, createTestData, updateShape,
     type Shape, type AddShape, type Geometry as ShapeGeometry, type MergeShapesRequest, type PagedResult
 } from './services/shapeService';
+import { debounce } from 'lodash';
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
   const [focusGeometry, setFocusGeometry] = useState<ShapeGeometry | null>(null);
   const [resetViewToggle, setResetViewToggle] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [isMergeMode, setIsMergeMode] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -165,9 +167,18 @@ function App() {
     setVisibleTypes(prev => ({ ...prev, [type]: isVisible }));
   };
 
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((term: string) => {
+        setSearchTerm(term);
+        setPageNumber(1);
+      }, 500),
+    []
+  );
+
   const handleSearchChange = (term: string) => {
-    setSearchTerm(term);
-    setPageNumber(1);
+    setInputValue(term);
+    debouncedSearch(term);
   };
 
   const onUpdateShape = async (id: number, newName: string) => {
@@ -231,7 +242,7 @@ function App() {
         isMergeMode={isMergeMode}
         visibleTypes={visibleTypes}
         onFilterChange={handleFilterChange}
-        searchTerm={searchTerm}
+        searchTerm={inputValue}
         onSearchChange={handleSearchChange}
         filteredShapes={filteredShapes}
         onJumpToShape={handleJumpToShape}

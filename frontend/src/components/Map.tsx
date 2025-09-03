@@ -234,7 +234,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         const handleClick = (event: any) => {
             if (drawType !== 'None' || isMergeMode) return;
 
-            // Always hide the popup on any click to start fresh.
+            
             setSelectedShape(null);
             setInfoPopupPosition(null);
             setContainedShapes([]);
