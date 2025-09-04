@@ -16,19 +16,19 @@ namespace BaşarsoftStaj.Entity
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        public string GeometryType { get; set; } = string.Empty; // e.g., "LineString", "Point", "Polygon"
+        public string GeometryType { get; set; } = string.Empty; 
 
         [Required]
-        public string ShapeType { get; set; } = string.Empty; // e.g., "A", "B"
+        public string ShapeType { get; set; } = string.Empty; 
 
         [Required]
-        public string RelatedGeometryType { get; set; } = string.Empty; // e.g., "Point"
+        public string RelatedGeometryType { get; set; } = string.Empty; 
 
         [Required]
-        public string RelatedShapeType { get; set; } = string.Empty; // e.g., "B"
+        public string RelatedShapeType { get; set; } = string.Empty; 
 
         [Required]
-        public string ValidationType { get; set; } = string.Empty; // e.g., "CannotIntersect", "MustBeWithin"
+        public string ValidationType { get; set; } = string.Empty; 
 
         public double Buffer { get; set; } = 0;
 
