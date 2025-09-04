@@ -18,6 +18,7 @@ interface NavbarProps {
     onSearchChange: (term: string) => void;
     filteredShapes: Shape[];
     onJumpToShape: (geometry: any) => void;
+    onRulesClick: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -25,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({
     onDeleteShapeClick, onToggleShapeList, onResetViewClick, 
     onCreateTestDataClick, visibleTypes, onFilterChange, 
     searchTerm, onSearchChange, filteredShapes, onJumpToShape,
-    onToggleMergeMode, isMergeMode
+    onToggleMergeMode, isMergeMode, onRulesClick
 }) => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [isExpanded, setIsExpanded] = useState(true);
@@ -234,6 +235,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <button onClick={onToggleMergeMode} style={{...buttonStyle, backgroundColor: isMergeMode ? '#e0e0e0' : 'transparent'}}><span style={iconStyle}>⧉</span> Merge Polygons</button>
                     <hr style={hrStyle} />
                     <button onClick={onToggleShapeList} style={buttonStyle}><span style={iconStyle}>≡</span> View Geometry</button>
+                    <button onClick={onRulesClick} style={buttonStyle}><span style={iconStyle}>§</span> Rules</button>
                     <button onClick={onResetViewClick} style={buttonStyle}><span style={iconStyle}>⟳</span> Reset View</button>
                     <hr style={hrStyle} />
                     <button onClick={onCreateTestDataClick} style={{...buttonStyle, color: '#28a745'}}><span style={iconStyle}>T</span> Create Test Data</button>

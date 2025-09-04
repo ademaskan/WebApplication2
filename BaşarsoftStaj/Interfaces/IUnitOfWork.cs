@@ -4,7 +4,7 @@ namespace BaşarsoftStaj.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        IShapeRepository Points { get; }
+        IShapeRepository Shapes { get; }
         Task<int> SaveAsync();
     }
 }

@@ -10,22 +10,28 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Shape> PointsEF { get; set; }
+    public DbSet<Shape> Shapes { get; set; }
+    public DbSet<Rule> Rules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        modelBuilder.HasPostgresExtension("postgis");
 
         modelBuilder.Entity<Shape>(entity =>
         {
+            entity.ToTable("Shapes");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.Geometry)
-                .HasColumnType("geometry")
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("geometry");
         });
+
+        modelBuilder.Entity<Rule>().ToTable("Rules");
     }
 }

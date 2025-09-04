@@ -19,13 +19,13 @@ public class ShapeServiceEFC : IShapeService
 
     public ApiResponse<List<Shape>> GetAllPoints()
     {
-        var points = _context.PointsEF.ToList();
+        var points = _context.Shapes.ToList();
         return ApiResponse<List<Shape>>.SuccessResponse(points, "PointsRetrievedSuccessfully");
     }
 
     public ApiResponse<Shape> GetPointById(int id)
     {
-        var point = _context.PointsEF.FirstOrDefault(p => p.Id == id);
+        var point = _context.Shapes.FirstOrDefault(p => p.Id == id);
         if (point == null)
         {
             return ApiResponse<Shape>.ErrorResponse("PointNotFound");
@@ -51,7 +51,7 @@ public class ShapeServiceEFC : IShapeService
                 Type = pointDto.Type
             };
 
-            _context.PointsEF.Add(point);
+            _context.Shapes.Add(point);
             _context.SaveChanges();
 
             return ApiResponse<Shape>.SuccessResponse(point, "PointAddedSuccessfully");
@@ -96,7 +96,7 @@ public class ShapeServiceEFC : IShapeService
             }
         }
 
-        _context.PointsEF.AddRange(validPoints);
+        _context.Shapes.AddRange(validPoints);
         _context.SaveChanges();
 
         return ApiResponse<List<Shape>>.SuccessResponse(validPoints, "PointsAddedSuccessfully");
@@ -104,7 +104,7 @@ public class ShapeServiceEFC : IShapeService
 
     public ApiResponse<Shape> UpdatePoint(int id, string newName, Geometry newGeometry)
     {
-        var point = _context.PointsEF.FirstOrDefault(p => p.Id == id);
+        var point = _context.Shapes.FirstOrDefault(p => p.Id == id);
         if (point == null)
         {
             return ApiResponse<Shape>.ErrorResponse("PointNotFound");
@@ -135,13 +135,13 @@ public class ShapeServiceEFC : IShapeService
 
     public ApiResponse<Shape> DeletePoint(int id)
     {
-        var point = _context.PointsEF.FirstOrDefault(p => p.Id == id);
+        var point = _context.Shapes.FirstOrDefault(p => p.Id == id);
         if (point == null)
         {
             return ApiResponse<Shape>.ErrorResponse("PointNotFound");
         }
         
-        _context.PointsEF.Remove(point);
+        _context.Shapes.Remove(point);
         _context.SaveChanges();
 
         return ApiResponse<Shape>.SuccessResponse(point, "PointDeletedSuccessfully");

@@ -1,20 +1,29 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import './Popup.css';
 
 interface PopupProps {
-    content: string;
-    position: { x: number; y: number };
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    children: ReactNode;
 }
 
-const Popup: React.FC<PopupProps> = ({ content, position }) => {
-    if (!content) return null;
+const Popup: React.FC<PopupProps> = ({ isOpen, onClose, title, children }) => {
+    if (!isOpen) {
+        return null;
+    }
 
     return (
-        <div
-            className="popup"
-            style={{ left: `${position.x}px`, top: `${position.y}px` }}
-        >
-            {content}
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2>{title}</h2>
+                    <button onClick={onClose} className="close-button">&times;</button>
+                </div>
+                <div className="modal-body">
+                    {children}
+                </div>
+            </div>
         </div>
     );
 };

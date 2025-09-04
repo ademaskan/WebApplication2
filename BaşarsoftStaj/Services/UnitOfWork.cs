@@ -6,14 +6,14 @@ namespace BaşarsoftStaj.Services
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-        private IShapeRepository? _points;
+        private IShapeRepository? _shapes;
 
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
         }
 
-        public IShapeRepository Points => _points ??= new ShapeRepository(_context);
+        public IShapeRepository Shapes => _shapes ??= new ShapeRepository(_context);
 
         public async Task<int> SaveAsync()
         {

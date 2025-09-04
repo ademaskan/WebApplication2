@@ -48,6 +48,11 @@ namespace BaşarsoftStaj.Services
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
+        public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
+        }
+
         public virtual async Task<T> AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);

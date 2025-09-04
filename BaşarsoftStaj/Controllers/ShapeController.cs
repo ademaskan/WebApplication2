@@ -28,7 +28,7 @@ namespace BaşarsoftStaj.Controllers
         {
             try
             {
-                var points = await _unitOfWork.Points.GetAllAsync(pageNumber, pageSize, searchTerm);
+                var points = await _unitOfWork.Shapes.GetAllAsync(pageNumber, pageSize, searchTerm);
                 return new ApiResponse<PagedResult<Shape>>
                 {
                     Success = true,
@@ -50,7 +50,7 @@ namespace BaşarsoftStaj.Controllers
         {
             try
             {
-                var point = await _unitOfWork.Points.GetByIdAsync(id);
+                var point = await _unitOfWork.Shapes.GetByIdAsync(id);
                 if (point == null)
                 {
                     return new ApiResponse<Shape>
@@ -81,7 +81,7 @@ namespace BaşarsoftStaj.Controllers
         {
             try
             {
-                var existingPoint = await _unitOfWork.Points.GetByIdAsync(id);
+                var existingPoint = await _unitOfWork.Shapes.GetByIdAsync(id);
                 if (existingPoint == null)
                 {
                     return new ApiResponse<Shape>
@@ -97,7 +97,7 @@ namespace BaşarsoftStaj.Controllers
                     existingPoint.Geometry = request.NewGeometry;
                 }
 
-                await _unitOfWork.Points.UpdateAsync(existingPoint);
+                await _unitOfWork.Shapes.UpdateAsync(existingPoint);
                 await _unitOfWork.SaveAsync();
 
                 return new ApiResponse<Shape>
@@ -121,7 +121,7 @@ namespace BaşarsoftStaj.Controllers
         {
             try
             {
-                var point = await _unitOfWork.Points.GetByIdAsync(id);
+                var point = await _unitOfWork.Shapes.GetByIdAsync(id);
                 if (point == null)
                 {
                     return new ApiResponse<Shape>
@@ -131,7 +131,7 @@ namespace BaşarsoftStaj.Controllers
                     };
                 }
 
-                await _unitOfWork.Points.DeleteAsync(id);
+                await _unitOfWork.Shapes.DeleteAsync(id);
                 await _unitOfWork.SaveAsync();
 
                 return new ApiResponse<Shape>
@@ -155,7 +155,7 @@ namespace BaşarsoftStaj.Controllers
         {
             try
             {
-                await _unitOfWork.Points.DeleteAllAsync();
+                await _unitOfWork.Shapes.DeleteAllAsync();
                 await _unitOfWork.SaveAsync();
 
                 return new ApiResponse<object>
@@ -177,6 +177,8 @@ namespace BaşarsoftStaj.Controllers
         [HttpPost("Add")]
         public async Task<ApiResponse<Shape>> Add([FromForm] AddPointDto pointDto, IFormFile? image)
         {
+           
+
             try
             {
                 var reader = new GeoJsonReader();
@@ -219,7 +221,7 @@ namespace BaşarsoftStaj.Controllers
 
                 point.ImagePath = imagePath;
 
-                await _unitOfWork.Points.AddAsync(point);
+                await _unitOfWork.Shapes.AddAsync(point);
                 await _unitOfWork.SaveAsync();
 
                 return new ApiResponse<Shape>
@@ -230,10 +232,11 @@ namespace BaşarsoftStaj.Controllers
             }
             catch (Exception ex)
             {
+                var errorMessage = ex.InnerException?.Message ?? ex.Message;
                 return new ApiResponse<Shape>
                 {
                     Success = false,
-                    Message = ex.Message
+                    Message = errorMessage
                 };
             }
         }
@@ -258,7 +261,7 @@ namespace BaşarsoftStaj.Controllers
                         Type = dto.Type
                     };
 
-                    var validationResult = await _validationService.ValidateShapeAsync(point);
+                    var validationResult = await _validationService.ValidateShapeAsync(point, points);
                     if (!validationResult.Success)
                     {
                         return new ApiResponse<List<Shape>>
@@ -268,8 +271,12 @@ namespace BaşarsoftStaj.Controllers
                         };
                     }
 
-                    await _unitOfWork.Points.AddAsync(point);
                     points.Add(point);
+                }
+
+                foreach (var point in points)
+                {
+                    await _unitOfWork.Shapes.AddAsync(point);
                 }
 
                 await _unitOfWork.SaveAsync();
@@ -304,7 +311,7 @@ namespace BaşarsoftStaj.Controllers
 
             try
             {
-                await _unitOfWork.Points.DeleteRangeAsync(request.DeleteIds);
+                await _unitOfWork.Shapes.DeleteRangeAsync(request.DeleteIds);
 
                 request.Geometry.SRID = 4326;
                 var newShape = new Shape
@@ -324,7 +331,7 @@ namespace BaşarsoftStaj.Controllers
                     };
                 }
 
-                await _unitOfWork.Points.AddAsync(newShape);
+                await _unitOfWork.Shapes.AddAsync(newShape);
                 await _unitOfWork.SaveAsync();
 
                 return new ApiResponse<Shape>
@@ -389,14 +396,20 @@ namespace BaşarsoftStaj.Controllers
                     });
 
                 var shapes = shapeFaker.Generate(count);
+                var validShapes = new List<Shape>();
 
                 foreach (var shape in shapes)
                 {
-                    var validationResult = await _validationService.ValidateShapeAsync(shape);
+                    var validationResult = await _validationService.ValidateShapeAsync(shape, validShapes);
                     if (validationResult.Success)
                     {
-                        await _unitOfWork.Points.AddAsync(shape);
+                        validShapes.Add(shape);
                     }
+                }
+
+                foreach (var shape in validShapes)
+                {
+                    await _unitOfWork.Shapes.AddAsync(shape);
                 }
                 
                 await _unitOfWork.SaveAsync();
@@ -404,15 +417,16 @@ namespace BaşarsoftStaj.Controllers
                 return new ApiResponse<object>
                 {
                     Success = true,
-                    Message = $"{count} test shapes created successfully."
+                    Message = $"{validShapes.Count} test shapes created successfully."
                 };
             }
             catch (Exception ex)
             {
+                var errorMessage = ex.InnerException?.Message ?? ex.Message;
                 return new ApiResponse<object>
                 {
                     Success = false,
-                    Message = ex.Message
+                    Message = errorMessage
                 };
             }
         }

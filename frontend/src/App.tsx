@@ -6,6 +6,7 @@ import AddShapeModal from './components/AddShapeModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import DeleteShapeModal from './components/DeleteShapeModal';
 import CreateTestDataModal from './components/CreateTestDataModal';
+import RulesModal from './components/RulesModal';
 import './App.css';
 import { Geometry } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -27,6 +28,7 @@ function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isCreateTestDataModalOpen, setIsCreateTestDataModalOpen] = useState(false);
   const [isShapeListOpen, setIsShapeListOpen] = useState(false);
+  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
   const [shapeName, setShapeName] = useState('');
   const [shapeType, setShapeType] = useState<'A' | 'B' | 'C'>('A');
   const [drawType, setDrawType] = useState<'Point' | 'LineString' | 'Polygon' | 'None'>('None');
@@ -262,6 +264,7 @@ function App() {
         onSearchChange={handleSearchChange}
         filteredShapes={filteredShapes}
         onJumpToShape={handleJumpToShape}
+        onRulesClick={() => setIsRulesModalOpen(true)}
       />
             <div className="pagination-controls">
                 <button onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))} disabled={pageNumber === 1 || pageSize <= 0}>
@@ -294,6 +297,10 @@ function App() {
         isOpen={isCreateTestDataModalOpen}
         onClose={() => setIsCreateTestDataModalOpen(false)}
         onGenerate={handleGenerateTestData}
+      />
+      <RulesModal
+        isOpen={isRulesModalOpen}
+        onClose={() => setIsRulesModalOpen(false)}
       />
       <DeleteShapeModal
         isOpen={isDeleteModalOpen}

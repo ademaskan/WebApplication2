@@ -1,7 +1,11 @@
+using BaşarsoftStaj.Data;
 using BaşarsoftStaj.Entity;
 using BaşarsoftStaj.Interfaces;
 using BaşarsoftStaj.Models;
+using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BaşarsoftStaj.Services
@@ -9,46 +13,72 @@ namespace BaşarsoftStaj.Services
     public class ValidationService : IValidationService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AppDbContext _context;
 
-        public ValidationService(IUnitOfWork unitOfWork)
+        public ValidationService(IUnitOfWork unitOfWork, AppDbContext context)
         {
             _unitOfWork = unitOfWork;
+            _context = context;
         }
 
-        public async Task<ApiResponse<object>> ValidateShapeAsync(Shape shape)
+        public async Task<ApiResponse<object>> ValidateShapeAsync(Shape shape, List<Shape>? pendingShapes = null)
         {
-            if (shape.Geometry.OgcGeometryType == OgcGeometryType.LineString)
+            var rules = await _context.Rules
+                .Where(r => r.Enabled && r.GeometryType == shape.Geometry.OgcGeometryType.ToString())
+                .ToListAsync();
+
+            foreach (var rule in rules)
             {
-                if (shape.Type == "A")
+                if (shape.Type == rule.ShapeType)
                 {
-                    var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(shape.Geometry, new[] { "B" });
-                    if (intersectsWithPoints)
+                    if (rule.ValidationType == "CannotIntersect")
                     {
-                        return new ApiResponse<object>
+                        var intersects = await CheckIntersection(shape, rule, pendingShapes);
+                        if (intersects)
                         {
-                            Success = false,
-                            Message = $"The new LineString of type A cannot intersect with existing Points of type B." //message will be fetched from resx file
-                        };
-                    }
-                }
-            }
-            else if (shape.Geometry.OgcGeometryType == OgcGeometryType.Point)
-            {
-                if (shape.Type == "B")
-                {
-                    var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(shape.Geometry, new[] { "A" });
-                    if (intersectsWithLineStrings)
-                    {
-                        return new ApiResponse<object>
-                        {
-                            Success = false,
-                            Message = "The new Point of type B cannot intersect with existing LineStrings of type A."
-                        };
+                            return new ApiResponse<object>
+                            {
+                                Success = false,
+                                Message = $"Validation failed: {rule.Name}. {rule.Description}"
+                            };
+                        }
                     }
                 }
             }
 
             return new ApiResponse<object> { Success = true };
+        }
+
+        private async Task<bool> CheckIntersection(Shape shape, Rule rule, List<Shape>? pendingShapes)
+        {
+            if (Enum.TryParse<OgcGeometryType>(rule.RelatedGeometryType, true, out var ogcGeometryType))
+            {
+                var geometryToValidate = shape.Geometry;
+                if (rule.Buffer > 0)
+                {
+                    geometryToValidate = geometryToValidate.Buffer(rule.Buffer);
+                }
+
+                // Check against database
+                var dbIntersects = await _unitOfWork.Shapes.AnyAsync(s =>
+                    s.Geometry.OgcGeometryType == ogcGeometryType &&
+                    s.Type == rule.RelatedShapeType &&
+                    s.Geometry.Intersects(geometryToValidate));
+
+                if (dbIntersects) return true;
+
+                // Check against pending shapes
+                if (pendingShapes != null)
+                {
+                    var pendingIntersects = pendingShapes.Any(s =>
+                        s.Geometry.OgcGeometryType == ogcGeometryType &&
+                        s.Type == rule.RelatedShapeType &&
+                        s.Geometry.Intersects(geometryToValidate));
+                    
+                    if (pendingIntersects) return true;
+                }
+            }
+            return false;
         }
     }
 }
