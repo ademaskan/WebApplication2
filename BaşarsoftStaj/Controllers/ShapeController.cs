@@ -14,11 +14,13 @@ namespace BaşarsoftStaj.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IValidationService _validationService;
 
-        public ShapeController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
+        public ShapeController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment, IValidationService validationService)
         {
             _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
+            _validationService = validationService;
         }
 
         [HttpGet("GetAll")]
@@ -179,36 +181,23 @@ namespace BaşarsoftStaj.Controllers
             {
                 var reader = new GeoJsonReader();
                 var geometry = reader.Read<Geometry>(pointDto.Geometry);
+                geometry.SRID = 4326;
 
-                if (geometry.OgcGeometryType == OgcGeometryType.LineString)
+                var point = new Shape
                 {
-                    if (pointDto.Type == "A")
-                    {
-                        var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(geometry, new[] { "B" });
-                        if (intersectsWithPoints)
-                        {
-                            return new ApiResponse<Shape>
-                            {
-                                Success = false,
-                                Message = $"The new LineString of type A cannot intersect with existing Points of type B."
-                            };
-                        }
-                    }
-                }
-                else if (geometry.OgcGeometryType == OgcGeometryType.Point)
+                    Name = pointDto.Name,
+                    Geometry = geometry,
+                    Type = pointDto.Type
+                };
+
+                var validationResult = await _validationService.ValidateShapeAsync(point);
+                if (!validationResult.Success)
                 {
-                    if (pointDto.Type == "B")
+                    return new ApiResponse<Shape>
                     {
-                        var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(geometry, new[] { "A" });
-                        if (intersectsWithLineStrings)
-                        {
-                            return new ApiResponse<Shape>
-                            {
-                                Success = false,
-                                Message = "The new Point of type B cannot intersect with existing LineStrings of type A."
-                            };
-                        }
-                    }
+                        Success = false,
+                        Message = validationResult.Message
+                    };
                 }
                 
                 string? imagePath = null;
@@ -228,13 +217,7 @@ namespace BaşarsoftStaj.Controllers
                     imagePath = Path.Combine("Uploads", "Images", uniqueFileName);
                 }
 
-                var point = new Shape
-                {
-                    Name = pointDto.Name,
-                    Geometry = geometry,
-                    Type = pointDto.Type,
-                    ImagePath = imagePath
-                };
+                point.ImagePath = imagePath;
 
                 await _unitOfWork.Points.AddAsync(point);
                 await _unitOfWork.SaveAsync();
@@ -266,36 +249,7 @@ namespace BaşarsoftStaj.Controllers
                 foreach (var dto in pointDtos)
                 {
                     var geometry = reader.Read<Geometry>(dto.Geometry);
-                    if (geometry.OgcGeometryType == OgcGeometryType.LineString)
-                    {
-                        if (dto.Type == "A")
-                        {
-                            var intersectsWithPoints = await _unitOfWork.Points.HasIntersectingPointsAsync(geometry, new[] { "B" });
-                            if (intersectsWithPoints)
-                            {
-                                return new ApiResponse<List<Shape>>
-                                {
-                                    Success = false,
-                                    Message = $"A LineString of type A named '{dto.Name}' cannot intersect with existing Points of type B."
-                                };
-                            }
-                        }
-                    }
-                    else if (geometry.OgcGeometryType == OgcGeometryType.Point)
-                    {
-                        if (dto.Type == "B")
-                        {
-                            var intersectsWithLineStrings = await _unitOfWork.Points.HasIntersectingLineStringsAsync(geometry, new[] { "A" });
-                            if (intersectsWithLineStrings)
-                            {
-                                return new ApiResponse<List<Shape>>
-                                {
-                                    Success = false,
-                                    Message = $"A Point of type B named '{dto.Name}' cannot intersect with existing LineStrings of type A."
-                                };
-                            }
-                        }
-                    }
+                    geometry.SRID = 4326;
                     
                     var point = new Shape
                     {
@@ -303,6 +257,16 @@ namespace BaşarsoftStaj.Controllers
                         Geometry = geometry,
                         Type = dto.Type
                     };
+
+                    var validationResult = await _validationService.ValidateShapeAsync(point);
+                    if (!validationResult.Success)
+                    {
+                        return new ApiResponse<List<Shape>>
+                        {
+                            Success = false,
+                            Message = validationResult.Message
+                        };
+                    }
 
                     await _unitOfWork.Points.AddAsync(point);
                     points.Add(point);
@@ -342,12 +306,23 @@ namespace BaşarsoftStaj.Controllers
             {
                 await _unitOfWork.Points.DeleteRangeAsync(request.DeleteIds);
 
+                request.Geometry.SRID = 4326;
                 var newShape = new Shape
                 {
                     Name = request.Name,
                     Geometry = request.Geometry,
                     Type = request.Type,
                 };
+
+                var validationResult = await _validationService.ValidateShapeAsync(newShape);
+                if (!validationResult.Success)
+                {
+                    return new ApiResponse<Shape>
+                    {
+                        Success = false,
+                        Message = validationResult.Message
+                    };
+                }
 
                 await _unitOfWork.Points.AddAsync(newShape);
                 await _unitOfWork.SaveAsync();
@@ -382,7 +357,7 @@ namespace BaşarsoftStaj.Controllers
 
             try
             {
-                var geometryFactory = new GeometryFactory();
+                var geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
                 var shapeFaker = new Faker<Shape>()
                     .RuleFor(s => s.Name, f => f.Address.City())
@@ -417,7 +392,11 @@ namespace BaşarsoftStaj.Controllers
 
                 foreach (var shape in shapes)
                 {
-                    await _unitOfWork.Points.AddAsync(shape);
+                    var validationResult = await _validationService.ValidateShapeAsync(shape);
+                    if (validationResult.Success)
+                    {
+                        await _unitOfWork.Points.AddAsync(shape);
+                    }
                 }
                 
                 await _unitOfWork.SaveAsync();
