@@ -4,3 +4,11 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 /BaşarsoftStaj/Uploads/
+*.DotSettings.user
+*.user
+appsettings.Development.json
+.idea/
+.vs/
+frontend/node_modules/
+frontend/dist/
+.DS_Store
