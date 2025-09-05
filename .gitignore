@@ -6,7 +6,8 @@ riderModule.iml
 /BaşarsoftStaj/Uploads/
 *.DotSettings.user
 *.user
-appsettings.Development.json
+/BaşarsoftStaj/appsettings.Development.json
+/BaşarsoftStaj/appsettings.json
 .idea/
 .vs/
 frontend/node_modules/
